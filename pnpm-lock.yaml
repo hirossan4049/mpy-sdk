@@ -67,11 +67,15 @@ importers:
   packages/node:
     dependencies:
       '@h1mpy-sdk/core':
-        specifier: 1.0.0
+        specifier: workspace:^1.0.0
         version: link:../core
       serialport:
         specifier: ^13.0.0
         version: 13.0.0
+    devDependencies:
+      typescript:
+        specifier: ^5.1.0
+        version: 5.8.3
 
   packages/web:
     dependencies:

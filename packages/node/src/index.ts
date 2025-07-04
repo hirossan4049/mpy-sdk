@@ -8,6 +8,9 @@
 export { NodeSerialConnection } from './NodeSerialConnection';
 export * from '@h1mpy-sdk/core';
 
+// Re-export REPL adapter for convenience
+export { REPLAdapter } from '@h1mpy-sdk/core';
+
 // Main client class
 import { EventEmitter } from 'events';
 import { NodeSerialConnection } from './NodeSerialConnection';
