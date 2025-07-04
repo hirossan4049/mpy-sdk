@@ -5,7 +5,7 @@
  * MicroPython development with M5Stack devices.
  */
 
-import { REPLAdapter } from '@h1mpy-sdk/node';
+const { REPLAdapter } = require('../../packages/node/dist/index.js');
 
 async function replExample() {
   console.log('🐍 M5Stack REPL Adapter Example\n');
@@ -225,8 +225,8 @@ print(f"Created at: {time.time()}")
 }
 
 // Run the example
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (require.main === module) {
   replExample().catch(console.error);
 }
 
-export { replExample };
+module.exports = { replExample };
