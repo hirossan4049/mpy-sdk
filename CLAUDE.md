@@ -18,7 +18,7 @@ pnpm install
 
 # IMPORTANT: Always use pnpm, never npm or yarn
 
-# Build all targets (Node.js, Browser, Types)
+# Build all targets
 pnpm build
 
 # Build specific components
@@ -31,6 +31,10 @@ pnpm dev
 # Linting
 pnpm lint
 pnpm lint:fix
+
+# Code formatting
+pnpm format         # Format all TypeScript files
+pnpm format:check   # Check formatting without changes
 
 # Clean build artifacts
 pnpm clean
@@ -53,91 +57,107 @@ pnpm persist   # Firmware persistence example
 
 ## Architecture Overview
 
-### Core Components
-
-1. **Serial Communication Layer** (`src/core/`)
-   - `BaseSerialConnection`: Abstract base class for platform-specific implementations
-   - `NodeSerialConnection`: Node.js implementation using serialport library
-   - `ProtocolHandler`: Implements M5Stack binary protocol with CRC16 validation
-
-2. **High-Level Operations** (`src/manager/DeviceManager.ts`)
-   - File system operations (list, read, write, delete)
-   - Python code execution via REPL
-   - Device information retrieval
-   - WiFi configuration
-
-3. **Adapters** (`src/adapters/REPLAdapter.ts`)
-   - Provides interactive Python REPL interface
-   - Handles multi-line input and output parsing
-   - Auto-detection of code completion
-
-4. **Utilities** (`src/utils/`)
-   - `FileTransferManager`: Handles chunked file transfers with progress tracking
-   - `PythonAnalyzer`: Analyzes Python code for imports and dependencies
-
-### Component Relationships
+### Layered Architecture
 
 ```
-M5StackClient (main entry point)
-├── Connection (extends DeviceManager)
-│   └── NodeSerialConnection (or platform-specific)
-│       └── ProtocolHandler
-├── REPLAdapter (optional, for REPL interface)
-└── FileTransferManager (for file operations)
+┌─────────────────────────────────────┐
+│         M5StackClient               │ ← Public API entry point
+├─────────────────────────────────────┤
+│         Connection                  │ ← Device connection wrapper
+├─────────────────────────────────────┤
+│       DeviceManager                 │ ← High-level device operations
+├─────────────────────────────────────┤
+│    BaseSerialConnection            │ ← Abstract serial interface
+├─────────────────────────────────────┤
+│   NodeSerialConnection             │ ← Node.js serial implementation
+├─────────────────────────────────────┤
+│     ProtocolHandler                │ ← Binary protocol codec
+└─────────────────────────────────────┘
 ```
 
-### Node.js Architecture
+### Dual Communication Modes
 
-The SDK is built specifically for Node.js environments:
+The SDK supports two distinct communication approaches:
 
-- **Serial Communication**: Uses the `serialport` package for hardware communication
-- **Event-driven**: Built on Node.js EventEmitter for asynchronous operations
-- **TypeScript**: Full type safety with comprehensive type definitions
+1. **Protocol Mode** (via DeviceManager)
+   - Custom binary protocol with CRC16 validation
+   - Chunked file transfers with progress tracking
+   - Reliable, faster for file operations
+   - Frame structure: `[HEADER:3][LENGTH:1][COMMAND:1][DATA:N][CRC16:2][FOOTER:3]`
 
-## Key Design Decisions
+2. **REPL Mode** (via REPLAdapter)
+   - Direct MicroPython REPL interaction
+   - Standard Python command execution
+   - Better for interactive development
+   - Uses hexadecimal encoding for file transfers
 
-### Protocol Implementation
+### Key Design Patterns
 
-The SDK implements a custom binary protocol for reliable M5Stack communication:
+- **Factory Pattern**: M5StackClient manages multiple device connections
+- **Adapter Pattern**: REPLAdapter provides alternative communication interface
+- **Command Pattern**: Each operation has a specific command code (0x00-0x08)
+- **Observer Pattern**: Event-driven using EventEmitter for async operations
 
-- **Frame Structure**: `[HEADER:3][COMMAND:1][PAYLOAD_LEN:2][PAYLOAD][CRC16:2][FOOTER:3]`
-- **CRC16 Validation**: Uses polynomial 0x8005 for data integrity
-- **Command Codes**: 9 operation types (0x00-0x08) for different device operations
-- **Chunk Size**: 256 bytes for file transfers (hardcoded limit)
+### Protocol Implementation Details
 
-### Connection Management
-
-- **Singleton Pattern**: One connection per port/device
-- **Auto-retry Logic**: Built-in retry mechanism for failed operations
-- **Timeout Handling**: Default 5-second timeout, configurable per operation
-- **State Management**: Connection state tracked internally
-
-### REPL Implementation
-
-The REPL adapter provides a high-level interface for interactive Python:
-
-- **Raw REPL Mode**: Uses Ctrl-A/Ctrl-B for entering/exiting raw mode
-- **Multi-line Support**: Handles code blocks and indentation
-- **Output Parsing**: Separates stdout from return values
-- **Error Detection**: Parses Python exceptions and errors
-
-## Configuration
-
-Default configuration is defined in `src/types/index.ts`:
-
+**Command Codes**:
 ```typescript
-{
-  defaultTimeout: 5000,        // 5 seconds
-  defaultBaudRate: 115200,     // Fixed for M5Stack
-  maxChunkSize: 256,          // File transfer chunk size
-  protocolVersion: '1.0',
-  crcPolynomial: 0x8005,
-  frameDelimiters: {
-    header: [0xaa, 0xab, 0xaa],
-    footer: [0xab, 0xcc, 0xab],
-  },
-}
+IS_ONLINE = 0x00      // Ping device
+GET_INFO = 0x01       // Get device information
+EXEC = 0x02           // Execute Python code
+LIST_DIR = 0x03       // List directory
+DOWNLOAD = 0x04       // Read file from device
+GET_FILE = 0x05       // Get file contents
+DOWNLOAD_FILE = 0x06  // Write file to device
+REMOVE_FILE = 0x07    // Delete file
+SET_WIFI = 0x08       // Configure WiFi
 ```
+
+**Protocol Constants**:
+- Header: `[0xAA, 0xAB, 0xAA]`
+- Footer: `[0xAB, 0xCC, 0xAB]`
+- CRC Polynomial: `0x8005`
+- Max chunk size: 256 bytes
+- Default timeout: 5000ms
+
+### File Transfer Strategy
+
+**Protocol Mode**:
+- Files split into 256-byte chunks
+- Each chunk validated with CRC16
+- Progress callbacks for UI updates
+- Automatic retry on failure
+
+**REPL Mode**:
+- Files encoded as hexadecimal strings
+- Transferred via `exec()` commands
+- Large files chunked to prevent timeout
+- Uses Python's `binascii` module
+
+### Error Handling Hierarchy
+
+```
+M5StackError (base class)
+├── CommunicationError    // Serial port or protocol errors
+├── TimeoutError          // Command execution timeout
+├── DeviceBusyError       // Concurrent operation attempted
+└── FileNotFoundError     // File operation failures
+```
+
+### Critical Implementation Notes
+
+1. **Single Command Execution**: Only one command can execute at a time (busy flag prevents concurrent operations)
+
+2. **REPL Mode Initialization**: Must send Ctrl+C (0x03) to interrupt any running program before starting REPL commands
+
+3. **Platform-Specific Ports**: 
+   - macOS: `/dev/tty.usbserial-*`
+   - Windows: `COM*`
+   - Linux: `/dev/ttyUSB*` or `/dev/ttyACM*`
+
+4. **Response Buffer Management**: Protocol mode accumulates data until complete frame is received, validated by CRC
+
+5. **File Path Handling**: REPL mode requires proper Python string escaping for file paths
 
 ## Build Outputs
 
@@ -146,48 +166,13 @@ The SDK builds to two targets:
 1. **Node.js** (`dist/node/`): CommonJS modules
 2. **Types** (`dist/types/`): TypeScript definitions
 
-## API Usage Patterns
-
-### Basic Connection
-
-```javascript
-const client = new M5StackClient();
-const connection = await client.connect('/dev/tty.usbserial-XXX');
-```
-
-### File Operations
-
-```javascript
-// List files
-const files = await connection.listDirectory('/');
-
-// Read file
-const content = await connection.readFile('/main.py');
-
-// Write file with progress
-await connection.writeFile('/main.py', content, (progress) => {
-  console.log(`Progress: ${progress.percentage}%`);
-});
-```
-
-### REPL Usage
-
-```javascript
-const adapter = new REPLAdapter('/dev/tty.usbserial-XXX');
-await adapter.connect();
-const result = await adapter.executeCode('print("Hello M5Stack")');
-```
-
 ## Dependencies
-
-**Production**: Minimal dependencies for lightweight SDK
-- `ts-loader`: TypeScript compilation for Webpack
 
 **Dependencies**:
 - `serialport` ^13.0.0: Core serial communication library
 
 **Development**: Standard TypeScript toolchain
-- TypeScript, ESLint
+- TypeScript, ESLint, Prettier
 - Type definitions for Node.js and serialport
 
 ## Important Development Rules
@@ -200,3 +185,15 @@ const result = await adapter.executeCode('print("Hello M5Stack")');
 - **NEVER modify tsconfig.json** - The configuration is carefully tuned for modern TypeScript best practices
 - The tsconfig uses ES2022 target with strict mode and all safety checks enabled
 - If you encounter type errors, fix the code, not the config
+
+### 3. Serial Communication
+- Always check `isConnected` before operations
+- Handle timeout errors gracefully
+- Use appropriate mode (Protocol vs REPL) for the task
+- Clean up connections on error or exit
+
+### 4. File Operations
+- Always use forward slashes in file paths
+- Check file existence before read operations
+- Handle chunk transfer progress for large files
+- Validate file content encoding in REPL mode
