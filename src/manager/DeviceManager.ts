@@ -24,7 +24,7 @@ import { FileTransferManager } from '../utils/FileTransfer';
 import { PythonAnalyzer } from '../utils/PythonAnalyzer';
 
 export class DeviceManager extends EventEmitter {
-  private connection: BaseSerialConnection;
+  protected connection: BaseSerialConnection;
   private fileTransfer: FileTransferManager;
   private pythonAnalyzer: PythonAnalyzer;
 

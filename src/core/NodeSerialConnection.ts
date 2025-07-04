@@ -71,7 +71,7 @@ export class NodeSerialConnection extends BaseSerialConnection {
     });
   }
 
-  async writeRaw(data: Buffer): Promise<void> {
+  protected async writeRaw(data: Buffer): Promise<void> {
     if (!this.serialPort || !this.isConnected) {
       throw new CommunicationError('Not connected');
     }

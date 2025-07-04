@@ -9,6 +9,9 @@ export { BaseSerialConnection } from './core/SerialConnection';
 export { NodeSerialConnection } from './core/NodeSerialConnection';
 export { ProtocolHandler } from './core/ProtocolHandler';
 
+// Adapter exports
+export { REPLAdapter } from './adapters/REPLAdapter';
+
 // Manager exports
 export { DeviceManager } from './manager/DeviceManager';
 

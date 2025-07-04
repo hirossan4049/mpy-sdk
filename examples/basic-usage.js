@@ -2,7 +2,7 @@
  * Basic usage example for @hirossan4049/mpy-sdk
  */
 
-const { M5StackClient } = require('@hirossan4049/mpy-sdk');
+const { M5StackClient } = require('../dist/node/index');
 
 async function basicExample() {
   // Create client with options

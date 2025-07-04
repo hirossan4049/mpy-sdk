@@ -27,6 +27,41 @@ npm install serialport
 
 ## Quick Start
 
+### Quick Test
+For a simple connection test:
+
+```bash
+# First time setup: install dependencies
+npm install
+
+# Run quick test (builds automatically)
+npm run quick-test
+```
+
+### Interactive CLI
+Start the interactive command line interface:
+
+```bash
+npm run cli
+```
+
+### Testing & Examples
+Run examples for testing functionality:
+
+```bash
+# Quick connection test - validates basic functionality
+npm run quick-test
+
+# REPL adapter example with M5Stack features
+npm run demo
+
+# Basic SDK usage example
+npm run example
+
+# Firmware persistence example
+npm run persist
+```
+
 ### Basic Usage
 
 ```typescript
@@ -251,6 +286,45 @@ console.log('Missing files:', analysis.missingFiles);
 console.log('Circular dependencies:', analysis.circularDependencies);
 ```
 
+### Firmware Persistence
+
+Make your code run automatically on M5Stack boot:
+
+```typescript
+// Save persistent code that runs on boot
+await connection.writeFile('/main.py', `
+from m5stack import *
+from m5ui import *
+import time
+
+setScreenColor(0x111111)
+title = M5TextBox(10, 10, "My App", lcd.FONT_Default, 0x00FF00)
+
+while True:
+    # Your persistent code here
+    time.sleep(1)
+`);
+
+// Create boot configuration
+await connection.writeFile('/boot.py', `
+import gc
+gc.collect()
+print("Device ready")
+`);
+```
+
+#### CLI Persistence Commands
+
+```bash
+npm run cli
+
+# In CLI:
+M5Stack> connect
+M5Stack> save print("Hello on boot!")  # Save to main.py
+M5Stack> backup                        # Backup all files  
+M5Stack> restore                       # Restore from backup
+```
+
 ## Error Handling
 
 The library provides specific error types for different scenarios:
@@ -298,8 +372,8 @@ const DEFAULT_CONFIG = {
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Make your changes and add tests
-4. Run tests: `npm test`
+3. Make your changes and validate with examples
+4. Test functionality: `npm run quick-test`
 5. Submit a pull request
 
 ## License

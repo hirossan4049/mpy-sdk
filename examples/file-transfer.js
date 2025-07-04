@@ -2,7 +2,7 @@
  * File transfer example with progress monitoring
  */
 
-const { M5StackClient } = require('@hirossan4049/mpy-sdk');
+const { M5StackClient } = require('../dist/node/index');
 const fs = require('fs');
 const path = require('path');
 

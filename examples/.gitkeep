@@ -1,0 +1,5 @@
+# Keep essential examples only:
+# - basic-usage.js
+# - repl-adapter-example.js  
+# - dependency-analysis.js
+# - file-transfer.js

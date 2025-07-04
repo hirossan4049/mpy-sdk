@@ -2,7 +2,7 @@
  * Python dependency analysis example
  */
 
-const { PythonAnalyzer } = require('@hirossan4049/mpy-sdk');
+const { PythonAnalyzer } = require('../dist/node/index');
 
 async function dependencyAnalysisExample() {
   console.log('Python Dependency Analysis Example\n');

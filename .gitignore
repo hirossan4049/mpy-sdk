@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+yarn-error.log
+
+# Build outputs  
+dist/
+build/
+out/
+coverage/
+
+# OS files
+.DS_Store
+*.vsix
+
+# IDE
+.vscode-test/
+*.code-workspace
+.claude/
+
+# Temporary files
+*.tmp
+*.log
+quick-test*.js
+quick-test*.json
+*-backup-*.json
+
+# Test files
+*.test.ts
+*.test.js
+jest.config.js
+
+# Lock files (using npm)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

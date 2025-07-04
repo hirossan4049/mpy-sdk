@@ -47,8 +47,22 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
   // Abstract methods to be implemented by platform-specific classes
   abstract connect(): Promise<void>;
   abstract disconnect(): Promise<void>;
-  abstract writeRaw(data: Buffer): Promise<void>;
   abstract isOpen(): boolean;
+
+  // Implement required ISerialConnection methods
+  async write(data: Buffer): Promise<void> {
+    return this.writeRaw(data);
+  }
+
+  async read(): Promise<Buffer> {
+    // Return current buffer and clear it
+    const data = this.receivedBuffer;
+    this.receivedBuffer = Buffer.alloc(0);
+    return data;
+  }
+
+  // Internal write method to be implemented by subclasses
+  protected abstract writeRaw(data: Buffer): Promise<void>;
 
   /**
    * Send command to M5Stack device
