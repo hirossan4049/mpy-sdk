@@ -1,90 +1,171 @@
-# @h1mpy-sdk
+<div align="center">
 
-Cross-platform MicroPython SDK for M5Stack devices with Node.js, Web Serial, and CLI support.
+# 🚀 @h1mpy-sdk
 
-## Features
+**The most powerful, type-safe MicroPython SDK for M5Stack devices**
 
-- 🔗 **Multi-Platform**: Node.js, Browser (Web Serial), and CLI support
-- 🛡️ **Type Safe**: Full TypeScript support with comprehensive type definitions
-- 📁 **File Management**: Upload, download, and manage files on M5Stack devices
-- 🐍 **REPL & Protocol Modes**: Interactive REPL and binary protocol communication
-- 🖥️ **CLI & TUI Tools**: Command-line interface and interactive terminal UI
-- 📊 **Progress Tracking**: Real-time progress updates for file transfers
-- 🔄 **Auto Retry**: Built-in retry logic for reliable communication
-- 🌐 **Web Serial Ready**: Browser support via Chrome's Web Serial API
-- 🧩 **Monorepo Architecture**: Shared core logic with platform-specific adapters
-- 📱 **Cross-OS**: Works on Windows, macOS, and Linux
-- ⚡ **Real Hardware Tested**: Verified with actual M5Stack devices
+[![npm version](https://img.shields.io/npm/v/@h1mpy-sdk/node.svg)](https://www.npmjs.com/package/@h1mpy-sdk/node)
+[![Downloads](https://img.shields.io/npm/dm/@h1mpy-sdk/node.svg)](https://www.npmjs.com/package/@h1mpy-sdk/node)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-## Installation
+*Cross-platform MicroPython SDK with Node.js, Web Serial, and CLI support*
 
-```bash
-npm i @h1mpy-sdk/node   # Node.js environments
-npm i @h1mpy-sdk/web    # Browser apps via Web Serial
-npm i @h1mpy-sdk/cli    # Command-line tools
-```
+[**🎯 Quick Start**](#-quick-start) • [**📖 Documentation**](#-api-reference) • [**🛠️ CLI Tools**](#-cli-tools) • [**🌐 Examples**](#-examples)
 
-The `serialport` dependency is included automatically when using the Node package.
+</div>
 
-### Packages
+---
 
-The project is organised as a monorepo with the following packages:
+## ✨ Why @h1mpy-sdk?
 
-- `@h1mpy-sdk/core` – shared core logic and utilities
-- `@h1mpy-sdk/node` – Node.js serial implementation
-- `@h1mpy-sdk/web` – browser/Web Serial support  
-- `@h1mpy-sdk/cli` – command-line interface and TUI tools
+<table>
+<tr>
+<td width="50%">
 
-## Quick Start
+### 🔥 **Developer Experience First**
+- **Zero Config** - Works out of the box
+- **Full TypeScript** - Complete type safety
+- **Hot Reload** - Instant development feedback
+- **Rich CLI** - Interactive terminal interface
 
-### Quick Start Examples
-Working examples with real M5Stack hardware:
+</td>
+<td width="50%">
 
-```bash
-# Install dependencies and build
-pnpm install && pnpm build
+### ⚡ **Performance & Reliability**
+- **Multi-Platform** - Node.js, Browser, CLI
+- **Auto-Retry** - Built-in fault tolerance
+- **Progress Tracking** - Real-time updates
+- **Hardware Tested** - Verified on real devices
 
-# Node.js examples (in examples/node/)
-node working-test.js              # ✅ Verified working example
-node basic-connection-test.js     # Simple debugging test
-node simple-repl-test.js          # Basic REPL functionality
+</td>
+</tr>
+</table>
 
-# Web examples (in examples/web/)
-cd examples/web && pnpm dev      # Start web development server
-# Then open http://localhost:3000 in Chrome/Edge
+## 🎯 Quick Start
 
-# CLI and TUI tools
-pnpm cli                         # Command-line interface
-pnpm cli:tui                     # Interactive terminal UI
-```
-
-### Development Commands
+### 📦 Installation
 
 ```bash
-# Build all packages
-pnpm build              # Build all packages (Node.js, Web, CLI)
-pnpm clean              # Clean build artifacts
-
-# Development
-pnpm dev                # Quick development build
-pnpm lint               # Run ESLint
-pnpm format             # Format with Prettier
-
-# Testing
-pnpm test               # Run all unit tests
-pnpm test:watch         # Run tests in watch mode
-pnpm test:coverage      # Run tests with coverage
-
-# Tools
-pnpm cli                # Start command-line interface
-pnpm cli:tui            # Start terminal user interface
-pnpm example:node       # Run Node.js examples
-pnpm example:web        # Start web example server
+# Choose your flavor
+npm i @h1mpy-sdk/node   # 🟢 Node.js
+npm i @h1mpy-sdk/web    # 🌐 Browser
+npm i @h1mpy-sdk/cli    # 💻 CLI tools
 ```
 
-### Basic Usage
+### 🚀 30 Second Demo
 
-#### Node.js
+```typescript
+import { M5StackClient } from '@h1mpy-sdk/node';
+
+// 🎉 That's it! SDK handles everything
+const client = new M5StackClient();
+const connection = await client.connect('/dev/ttyUSB0');
+
+// 🐍 Execute Python instantly
+const result = await connection.executeCode(`
+print("Hello from M5Stack! 🎉")
+from m5stack import lcd
+lcd.print("SDK Working!", 0, 0)
+`);
+
+console.log(result.output); // ✅ "Hello from M5Stack! 🎉"
+```
+
+> **🎬 Want to see it in action?** Run `pnpm example:node` for a live demo!
+
+## 🌟 What's Special?
+
+### 🎨 **Modern Developer Experience**
+
+<details>
+<summary>🔍 <strong>Interactive CLI & TUI</strong></summary>
+
+```bash
+# 🎮 Launch interactive terminal
+pnpm cli:tui
+
+# 📊 Rich interface with:
+# • Device auto-discovery
+# • Real-time file sync
+# • Python REPL
+# • Progress indicators
+# • Error diagnostics
+```
+
+</details>
+
+<details>
+<summary>🌐 <strong>Web Serial Magic</strong></summary>
+
+```javascript
+// 🌟 Works directly in browser - no drivers needed!
+import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
+
+const port = await WebSerialConnection.requestPort(); // 🎯 One click
+const client = new M5StackClient();
+const connection = await client.connect(port);
+
+// 🚀 Same API as Node.js - zero learning curve!
+```
+
+</details>
+
+<details>
+<summary>⚡ <strong>Smart File Management</strong></summary>
+
+```typescript
+// 📁 Upload with progress tracking
+await connection.writeFile('/flash/app.py', code, {
+  onProgress: (bytes, total) => {
+    console.log(`📈 ${(bytes/total*100).toFixed(1)}%`);
+  }
+});
+
+// 🔄 Auto-retry on failure
+// 🛡️ Atomic operations
+// 📊 Real-time feedback
+```
+
+</details>
+
+## 🛠️ CLI Tools
+
+### 🎮 Interactive Terminal UI
+
+```bash
+pnpm cli:tui  # 🚀 Launch the magic
+```
+
+**Features:**
+- 📡 **Auto-Discovery** - Finds your M5Stack instantly
+- 🐍 **Live Python REPL** - Code and see results immediately  
+- 📁 **File Manager** - Drag & drop file operations
+- 📊 **Device Monitor** - Real-time system info
+- 🎨 **LCD Control** - Visual feedback on device
+- 💾 **Firmware Backup** - One-click device cloning
+
+### ⚡ Command Line Interface
+
+```bash
+# 🔍 Discover devices
+m5stack-cli list-ports
+
+# 🎯 Execute code instantly
+m5stack-cli exec /dev/ttyUSB0 "print('Hello World! 🌍')"
+
+# 📤 Upload files
+m5stack-cli upload /dev/ttyUSB0 ./my_app.py
+
+# 📥 Download files  
+m5stack-cli download /dev/ttyUSB0 /flash/main.py ./backup.py
+```
+
+## 🌐 Examples
+
+### 🟢 Node.js Example
+
 ```typescript
 import { M5StackClient } from '@h1mpy-sdk/node';
 
@@ -93,331 +174,136 @@ const client = new M5StackClient({
   logLevel: 'info'
 });
 
-// List available ports
+// 🎯 Simple and powerful
 const ports = await client.listPorts();
-console.log('Available ports:', ports);
+const connection = await client.connect(ports[0].path);
 
-// Connect to device
-const connection = await client.connect('/dev/ttyUSB0');
+// 🚀 Execute Python
+const result = await connection.executeCode(`
+import time
+for i in range(3):
+    print(f"Count: {i+1} 🚀")
+    time.sleep(1)
+`);
 
-// Execute Python code
-const result = await connection.executeCode('print("Hello, M5Stack!")');
-console.log('Output:', result.output);
-
-// List files
+// 📁 File operations
 const files = await connection.listDirectory('/flash');
-console.log('Files:', files);
-
-// Upload a file
-await connection.writeFile('/flash/main.py', 'print("Hello World")');
-
-// Disconnect
-await client.disconnect('/dev/ttyUSB0');
+await connection.writeFile('/flash/demo.py', 'print("Demo! 🎉")');
 ```
 
-#### Browser (Web Serial)
-```typescript
-import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
+### 🌐 Browser Example
 
-// Request port access (user interaction required)
-const port = await WebSerialConnection.requestPort();
-
-const client = new M5StackClient();
-const connection = await client.connect(port);
-
-// Same API as Node.js version
-const result = await connection.executeCode('print("Hello from Browser!")');
-console.log('Output:', result.output);
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>M5Stack Web Control 🎮</title>
+</head>
+<body>
+  <button id="connect">Connect to M5Stack 🔌</button>
+  <button id="flash-led">Flash LED 💡</button>
+  
+  <script type="module">
+    import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
+    
+    const client = new M5StackClient();
+    let connection;
+    
+    document.getElementById('connect').onclick = async () => {
+      const port = await WebSerialConnection.requestPort();
+      connection = await client.connect(port);
+      console.log('Connected! 🎉');
+    };
+    
+    document.getElementById('flash-led').onclick = async () => {
+      await connection.executeCode(`
+        from machine import Pin
+        import time
+        led = Pin(2, Pin.OUT)
+        for i in range(5):
+            led.on()
+            time.sleep(0.1)
+            led.off()
+            time.sleep(0.1)
+      `);
+    };
+  </script>
+</body>
+</html>
 ```
 
-## Command Line Interface (CLI)
+## 📚 API Reference
 
-The `@h1mpy-sdk/cli` package provides powerful command-line tools for M5Stack development.
+### 🎯 M5StackClient
 
-### Installation & Quick Start
-
-```bash
-# Install CLI package
-npm i -g @h1mpy-sdk/cli
-
-# Or use via pnpm in development
-pnpm cli        # Start CLI
-pnpm cli:tui    # Start Terminal UI
-```
-
-### CLI Commands
-
-```bash
-# Device discovery
-m5stack-cli list-ports
-
-# Code execution
-m5stack-cli exec /dev/ttyUSB0 "print('Hello M5Stack!')"
-
-# File operations
-m5stack-cli upload /dev/ttyUSB0 ./script.py
-m5stack-cli download /dev/ttyUSB0 /flash/main.py ./main.py
-m5stack-cli ls /dev/ttyUSB0 /flash
-
-# Device information
-m5stack-cli info /dev/ttyUSB0
-
-# Interactive REPL
-m5stack-cli repl /dev/ttyUSB0
-```
-
-### Terminal User Interface (TUI)
-
-Interactive menu-driven interface with full M5Stack control:
-
-```bash
-pnpm cli:tui
-```
-
-**TUI Features:**
-- 📡 Device selection and connection management
-- 🐍 Python code execution with real-time output
-- 📁 File upload/download with progress tracking
-- 📊 Device information and system status
-- 💾 Firmware backup and restore
-- 🎨 M5Stack LCD control and animation
-- 🔧 Comprehensive testing suite
-
-**TUI Navigation:**
-- Use arrow keys to navigate menus
-- Press Enter to select options
-- Press 'q' to quit at any time
-- All operations provide real-time feedback
-
-### File Transfer with Progress
-
-```typescript
-const fileContent = Buffer.from('# My Python script\nprint("Hello!")');
-
-await connection.writeFile('/flash/script.py', fileContent, {
-  onProgress: (bytesWritten, totalBytes) => {
-    const percentage = (bytesWritten / totalBytes) * 100;
-    console.log(`Upload progress: ${percentage.toFixed(1)}%`);
-  }
-});
-```
-
-### Event Handling
-
-```typescript
-connection.on('connect', () => {
-  console.log('Device connected');
-});
-
-connection.on('disconnect', () => {
-  console.log('Device disconnected');
-});
-
-connection.on('error', (error) => {
-  console.error('Connection error:', error);
-});
-
-connection.on('busy', (busy) => {
-  console.log('Device busy:', busy);
-});
-```
-
-## API Reference
-
-### M5StackClient
-
-Main client class for managing connections.
+The main entry point for all operations.
 
 ```typescript
 class M5StackClient {
   constructor(options?: ClientOptions);
   
+  // 🔍 Device discovery
   async listPorts(): Promise<PortInfo[]>;
+  
+  // 🔌 Connection management
   async connect(port: string): Promise<Connection>;
   async disconnect(port: string): Promise<void>;
+  async disconnectAll(): Promise<void>;
+  
+  // 📊 Utilities
   getConnection(port: string): Connection | null;
   setLogLevel(level: LogLevel): void;
   setTimeout(timeout: number): void;
 }
 ```
 
-### Connection
+### 🚀 Connection
 
-Device connection and management.
+Your gateway to M5Stack device operations.
 
 ```typescript
-class Connection {
-  // File Operations
-  async listDirectory(path: string): Promise<DirectoryEntry[]>;
-  async readFile(path: string): Promise<Buffer>;
-  async writeFile(path: string, content: Buffer | string, options?: WriteOptions): Promise<void>;
-  async deleteFile(path: string): Promise<void>;
-  
-  // Code Execution
+class Connection extends EventEmitter {
+  // 🐍 Code execution
   async executeCode(code: string): Promise<ExecutionResult>;
   async executeFile(path: string): Promise<ExecutionResult>;
   
-  // Device Info
+  // 📁 File operations
+  async listDirectory(path: string): Promise<DirectoryEntry[]>;
+  async readFile(path: string): Promise<Buffer>;
+  async writeFile(path: string, content: string | Buffer, options?: WriteOptions): Promise<void>;
+  async deleteFile(path: string): Promise<void>;
+  
+  // 📊 Device info
   async getDeviceInfo(): Promise<DeviceInfo>;
   async isOnline(): Promise<boolean>;
   
-  // WiFi Configuration
+  // 🌐 Network
   async setWifiConfig(ssid: string, password: string): Promise<void>;
 }
 ```
 
-### Types
-
-#### ClientOptions
+### 🎛️ Configuration Options
 
 ```typescript
 interface ClientOptions {
-  timeout?: number;           // Default: 5000ms
-  logLevel?: LogLevel;        // Default: 'info'
-  autoReconnect?: boolean;    // Default: false
-  maxRetries?: number;        // Default: 3
-  baudRate?: number;          // Default: 115200
+  timeout?: number;        // ⏱️ Default: 5000ms
+  logLevel?: LogLevel;     // 📝 Default: 'info'
+  autoReconnect?: boolean; // 🔄 Default: false
+  maxRetries?: number;     // 🔁 Default: 3
+  baudRate?: number;       // 📡 Default: 115200
 }
-```
 
-#### WriteOptions
-
-```typescript
 interface WriteOptions {
-  overwrite?: boolean;        // Default: true
-  createDirectories?: boolean; // Default: false
-  encoding?: 'utf8' | 'binary'; // Default: 'utf8'
-  onProgress?: (bytesWritten: number, totalBytes: number) => void;
+  overwrite?: boolean;     // 📝 Default: true
+  createDirectories?: boolean; // 📁 Default: false
+  encoding?: 'utf8' | 'binary'; // 📄 Default: 'utf8'
+  onProgress?: (bytesWritten: number, totalBytes: number) => void; // 📊
 }
 ```
 
-#### ExecutionResult
+## 🔧 Advanced Usage
 
-```typescript
-interface ExecutionResult {
-  output: string;
-  error?: string;
-  exitCode: number;
-  executionTime: number;
-  timestamp: Date;
-}
-```
-
-## Platform Support
-
-### Node.js
-
-```typescript
-import { M5StackClient } from '@h1mpy-sdk/node';
-// Uses 'serialport' package automatically
-```
-
-### Browser (Web Serial API)
-
-```typescript
-import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
-
-const port = await WebSerialConnection.requestPort();
-const client = new M5StackClient();
-const connection = await client.connect(port);
-```
-
-### Command Line Interface
-
-```bash
-# Global installation
-npm i -g @h1mpy-sdk/cli
-
-# Usage
-m5stack-cli list-ports
-m5stack-cli exec /dev/ttyUSB0 "print('Hello!')"
-
-# Interactive TUI
-m5stack-tui
-```
-
-## Advanced Usage
-
-### Custom Protocol Handler
-
-```typescript
-import { ProtocolHandler } from '@h1mpy-sdk/core';
-
-const protocol = new ProtocolHandler();
-const frame = protocol.createFrame(commandBuffer);
-```
-
-### File Transfer Management
-
-```typescript
-import { FileTransfer } from '@h1mpy-sdk/core';
-
-const fileTransfer = new FileTransfer(connection);
-await fileTransfer.uploadFile(filename, content, {
-  chunkSize: 256,
-  onProgress: (progress) => console.log(progress),
-  retryAttempts: 3
-});
-```
-
-### Python Code Analysis
-
-```typescript
-import { PythonAnalyzer } from '@h1mpy-sdk/core';
-
-const analyzer = new PythonAnalyzer();
-const imports = analyzer.parseImports(codeContent);
-console.log('Dependencies:', imports);
-```
-
-### Firmware Persistence
-
-Make your code run automatically on M5Stack boot:
-
-```typescript
-// Save persistent code that runs on boot
-await connection.writeFile('/flash/main.py', `
-from m5stack import *
-from m5ui import *
-import time
-
-setScreenColor(0x111111)
-title = M5TextBox(10, 10, "My App", lcd.FONT_Default, 0x00FF00)
-
-while True:
-    # Your persistent code here
-    time.sleep(1)
-`);
-
-// Create boot configuration
-await connection.writeFile('/flash/boot.py', `
-import gc
-gc.collect()
-print("Device ready")
-`);
-```
-
-#### CLI Persistence Commands
-
-```bash
-# Command-line approach
-m5stack-cli upload /dev/ttyUSB0 ./main.py -r /flash/main.py
-
-# Interactive TUI approach
-pnpm cli:tui
-# Then select device, choose "Save to main.py" and "Backup Firmware"
-
-# CLI with persistence
-m5stack-cli exec /dev/ttyUSB0 "
-from m5stack import *
-setScreenColor(0x000000)
-M5TextBox(10, 10, 'Persistent App', lcd.FONT_Default, 0x00FF00)
-"
-```
-
-## Error Handling
-
-The library provides specific error types for different scenarios:
+### 🎯 Error Handling
 
 ```typescript
 import { 
@@ -428,96 +314,158 @@ import {
 } from '@h1mpy-sdk/core';
 
 try {
-  await connection.executeCode('print("hello")');
+  await connection.executeCode('print("Hello!")');
 } catch (error) {
   if (error instanceof TimeoutError) {
-    console.log('Operation timed out');
+    console.log('⏱️ Operation timed out');
   } else if (error instanceof DeviceBusyError) {
-    console.log('Device is busy, try again later');
+    console.log('🔄 Device busy, retrying...');
   } else if (error instanceof CommunicationError) {
-    console.log('Communication failed:', error.message);
+    console.log('📡 Communication failed:', error.message);
   }
 }
 ```
 
-## Configuration
-
-### Default Configuration
+### 🎮 Event Handling
 
 ```typescript
-const DEFAULT_CONFIG = {
-  defaultTimeout: 5000,
-  defaultBaudRate: 115200,
-  maxChunkSize: 256,
-  protocolVersion: '1.0',
-  crcPolynomial: 0x8005,
-  frameDelimiters: {
-    header: [0xaa, 0xab, 0xaa],
-    footer: [0xab, 0xcc, 0xab],
-  },
-};
+// 📡 Connection events
+connection.on('connect', () => console.log('🔌 Connected!'));
+connection.on('disconnect', () => console.log('🔌 Disconnected!'));
+connection.on('error', (error) => console.log('❌ Error:', error));
+
+// 📊 Progress events
+connection.on('progress', (progress) => {
+  console.log(`📈 Progress: ${progress.percentage.toFixed(1)}%`);
+});
 ```
 
-## Contributing
+### 🚀 Boot Persistence
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/new-feature`
-3. Make your changes and validate with examples
-4. Test functionality: `pnpm test && pnpm example:node`
-5. Submit a pull request
+Make your code run automatically on M5Stack startup:
 
-## License
+```typescript
+// 💾 Save to main.py (runs on boot)
+await connection.writeFile('/flash/main.py', `
+# 🚀 My persistent app
+from m5stack import *
+import time
 
-MIT License. See [LICENSE](LICENSE) for details.
+# 🎨 Initialize display
+lcd.clear()
+lcd.print("My App v1.0 🎉", 0, 0)
 
-## Related Projects
+# 🔄 Main loop
+while True:
+    # Your code here
+    time.sleep(1)
+`);
 
-- [vscode-m5stack-mpy](https://github.com/curdeveryday/vscode-m5stack-mpy) - VS Code extension using this library
-- [M5Stack](https://m5stack.com/) - Official M5Stack hardware and software
+console.log('✅ App will run on next boot!');
+```
 
-## Development
+## 🏗️ Development
 
-### Build Commands
+### 🛠️ Setup
 
 ```bash
-# Install dependencies (required: pnpm)
+# 📦 Install dependencies
 pnpm install
 
-# Build all packages (core, node, web, cli)
+# 🔨 Build everything
 pnpm build
 
-# Development builds
-pnpm dev            # Quick development build
+# 🎮 Try the CLI
+pnpm cli:tui
 
-# Code quality
-pnpm lint           # Run ESLint on all packages
-pnpm lint:fix       # Fix ESLint issues
-pnpm format         # Format code with Prettier
-pnpm format:check   # Check formatting
-
-# Testing
-pnpm test           # Run all unit tests
-pnpm test:watch     # Run tests in watch mode
-pnpm test:coverage  # Run tests with coverage
-
-# Tools and examples
-pnpm cli            # Start CLI interface
-pnpm cli:tui        # Start Terminal UI
-pnpm example:node   # Run Node.js examples
-pnpm example:web    # Start web example server
-
-# Clean build artifacts
-pnpm clean
+# 🌐 Test web example
+pnpm example:web
 ```
 
-### Requirements
+### 🧪 Testing
 
-- Node.js >= 18.0.0
-- pnpm (required package manager)
-- M5Stack device with MicroPython firmware
+```bash
+# 🏃‍♂️ Run tests
+pnpm test
 
-## Support
+# 👀 Watch mode
+pnpm test:watch
+
+# 📊 Coverage report
+pnpm test:coverage
+
+# 🔍 Lint code
+pnpm lint
+```
+
+### 📦 Package Scripts
+
+| Command | Description |
+|---------|-------------|
+| `pnpm build` | 🔨 Build all packages |
+| `pnpm dev` | 🚀 Development build |
+| `pnpm cli` | 💻 Start CLI interface |
+| `pnpm cli:tui` | 🎮 Interactive terminal |
+| `pnpm example:node` | 🟢 Node.js examples |
+| `pnpm example:web` | 🌐 Web examples |
+| `pnpm clean` | 🧹 Clean build artifacts |
+
+## 🤝 Contributing
+
+We love contributions! Here's how to get started:
+
+### 🎯 Quick Contribution Guide
+
+1. **🍴 Fork** the repository
+2. **🌿 Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **💻 Code** your changes with tests
+4. **✅ Test** everything: `pnpm test && pnpm example:node`
+5. **📝 Commit** with a descriptive message
+6. **🚀 Submit** a pull request
+
+### 🐛 Found a Bug?
+
+- 🔍 Check if it's already [reported](https://github.com/hirossan4049/mpy-sdk/issues)
+- 📝 Create a detailed [issue](https://github.com/hirossan4049/mpy-sdk/issues/new)
+- 🎯 Include steps to reproduce
+
+### 💡 Have an Idea?
+
+- 💬 Start a [discussion](https://github.com/hirossan4049/mpy-sdk/discussions)
+- 📋 Create a [feature request](https://github.com/hirossan4049/mpy-sdk/issues/new)
+
+### 🏆 Contributors
+
+<a href="https://github.com/hirossan4049/mpy-sdk/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=hirossan4049/mpy-sdk" />
+</a>
+
+## 📋 Requirements
+
+- **Node.js** >= 18.0.0
+- **pnpm** (package manager)
+- **M5Stack** device with MicroPython firmware
+
+## 🏷️ License
+
+MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
 
 - 📖 [Documentation](https://github.com/hirossan4049/mpy-sdk/docs)
-- 🐛 [Issue Tracker](https://github.com/hirossan4049/mpy-sdk/issues)
+- 🐛 [Issues](https://github.com/hirossan4049/mpy-sdk/issues)
 - 💬 [Discussions](https://github.com/hirossan4049/mpy-sdk/discussions)
+- 🌟 [VS Code Extension](https://github.com/curdeveryday/vscode-m5stack-mpy)
+- 🏠 [M5Stack Official](https://m5stack.com/)
+
+---
+
+<div align="center">
+
+**⭐ Star us on GitHub — it helps!**
+
+[⭐ Give us a star](https://github.com/hirossan4049/mpy-sdk) | [🐛 Report bug](https://github.com/hirossan4049/mpy-sdk/issues) | [💬 Join discussion](https://github.com/hirossan4049/mpy-sdk/discussions)
+
+Made with ❤️ by the M5Stack community
+
+</div>
