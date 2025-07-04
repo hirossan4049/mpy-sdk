@@ -1,22 +1,21 @@
 /**
  * Core Serial Connection Handler
- * 
+ *
  * Base serial connection management with M5Stack protocol support for Node.js
  */
 
 import { EventEmitter } from 'events';
-import { 
-  ISerialConnection, 
-  ConnectionOptions, 
-  CommandCode, 
-  Command, 
+import {
+  Command,
   CommandResponse,
-  ResponseStatus,
-  ConnectionEventMap,
   CommunicationError,
-  TimeoutError,
+  ConnectionEventMap,
+  ConnectionOptions,
+  DEFAULT_CONFIG,
   DeviceBusyError,
-  DEFAULT_CONFIG 
+  ISerialConnection,
+  ResponseStatus,
+  TimeoutError,
 } from '../types';
 import { ProtocolHandler } from './ProtocolHandler';
 
@@ -27,7 +26,7 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
   protected isConnected: boolean = false;
   protected isBusy: boolean = false;
   protected receivedBuffer: Buffer = Buffer.alloc(0);
-  
+
   // Promise resolution handlers for current command
   protected currentResolve?: (value: CommandResponse) => void;
   protected currentReject?: (error: Error) => void;
@@ -97,27 +96,27 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
    * Send command with automatic retry
    */
   async sendCommandWithRetry(command: Command, maxRetries: number = 3): Promise<CommandResponse> {
-    let lastError: Error;
-    
+    let lastError: Error = new Error('Command failed after retries');
+
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await this.sendCommand(command);
       } catch (error) {
         lastError = error as Error;
-        
+
         // Don't retry certain errors
         if (error instanceof DeviceBusyError || error instanceof TimeoutError) {
           break;
         }
-        
+
         if (attempt < maxRetries) {
           // Wait before retry
-          await new Promise(resolve => setTimeout(resolve, 100 * (attempt + 1)));
+          await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
         }
       }
     }
-    
-    throw lastError!;
+
+    throw new Error(lastError?.message || 'Command failed after retries');
   }
 
   /**
@@ -127,12 +126,11 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
     try {
       const commandBuffer = this.protocolHandler.createCommandBuffer(command.code, command.data);
       const frame = this.protocolHandler.createFrame(commandBuffer);
-      
+
       console.log(`Sending command 0x${command.code.toString(16)}:`, frame.toString('hex'));
-      
+
       await this.writeRaw(frame);
       this.emit('busy', true);
-      
     } catch (error) {
       this.handleCommandError(new CommunicationError(`Failed to send command: ${error}`));
     }
@@ -143,7 +141,7 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
    */
   protected onDataReceived(chunk: Buffer): void {
     this.receivedBuffer = Buffer.concat([this.receivedBuffer, chunk]);
-    
+
     // Emit raw data event
     this.emit('data', chunk);
 
@@ -159,16 +157,15 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
   private processReceivedFrame(): void {
     try {
       const responseData = this.protocolHandler.extractResponseData(this.receivedBuffer);
-      
+
       const response: CommandResponse = {
         status: ResponseStatus.SUCCESS,
         data: responseData,
         timestamp: new Date(),
-        duration: this.commandTimeout ? Date.now() - (Date.now() - this.options.timeout) : 0
+        duration: this.commandTimeout ? Date.now() - (Date.now() - this.options.timeout) : 0,
       };
 
       this.handleCommandSuccess(response);
-      
     } catch (error) {
       this.handleCommandError(new CommunicationError(`Failed to process response: ${error}`));
     }
@@ -179,7 +176,7 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
    */
   private handleCommandSuccess(response: CommandResponse): void {
     this.clearCommandState();
-    
+
     if (this.currentResolve) {
       this.currentResolve(response);
     }
@@ -190,11 +187,11 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
    */
   private handleCommandError(error: Error): void {
     this.clearCommandState();
-    
+
     if (this.currentReject) {
       this.currentReject(error);
     }
-    
+
     this.emit('error', error);
   }
 
@@ -212,15 +209,15 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
   private clearCommandState(): void {
     this.isBusy = false;
     this.receivedBuffer = Buffer.alloc(0);
-    
+
     if (this.commandTimeout) {
       clearTimeout(this.commandTimeout);
       this.commandTimeout = undefined;
     }
-    
+
     this.currentResolve = undefined;
     this.currentReject = undefined;
-    
+
     this.emit('busy', false);
   }
 
@@ -243,7 +240,7 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
   protected onError(error: Error): void {
     console.error(`Serial connection error on ${this.port}:`, error);
     this.emit('error', error);
-    
+
     if (this.isBusy) {
       this.handleCommandError(error);
     }
@@ -267,7 +264,10 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
   /**
    * Type-safe event emission
    */
-  emit<K extends keyof ConnectionEventMap>(event: K, ...args: Parameters<ConnectionEventMap[K]>): boolean {
+  emit<K extends keyof ConnectionEventMap>(
+    event: K,
+    ...args: Parameters<ConnectionEventMap[K]>
+  ): boolean {
     return super.emit(event, ...args);
   }
 
@@ -291,7 +291,7 @@ export abstract class BaseSerialConnection extends EventEmitter implements ISeri
       connected: this.isConnected,
       busy: this.isBusy,
       options: this.options,
-      receivedBufferSize: this.receivedBuffer.length
+      receivedBufferSize: this.receivedBuffer.length,
     };
   }
 }

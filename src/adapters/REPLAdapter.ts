@@ -1,20 +1,19 @@
 /**
  * MicroPython REPL Adapter
- * 
+ *
  * Adapts the SDK to work with standard MicroPython REPL instead of custom protocol
  */
 
 import { EventEmitter } from 'events';
 import { SerialPort } from 'serialport';
 import {
-  DirectoryEntry,
-  WriteOptions,
-  ExecutionResult,
-  DeviceInfo,
   CommunicationError,
-  TimeoutError,
+  DeviceInfo,
+  DirectoryEntry,
+  ExecutionResult,
   FileNotFoundError,
-  DEFAULT_CONFIG
+  TimeoutError,
+  WriteOptions,
 } from '../types';
 
 export class REPLAdapter extends EventEmitter {
@@ -23,7 +22,7 @@ export class REPLAdapter extends EventEmitter {
   private baudRate: number;
   private responseBuffer: string = '';
   private currentCommand?: {
-    resolve: (value: any) => void;
+    resolve: (value: string) => void;
     reject: (error: Error) => void;
     timeout: NodeJS.Timeout;
   };
@@ -44,7 +43,7 @@ export class REPLAdapter extends EventEmitter {
       this.serialPort = new SerialPort({
         path: this.portPath,
         baudRate: this.baudRate,
-        autoOpen: false
+        autoOpen: false,
       });
 
       this.serialPort.on('open', () => {
@@ -99,7 +98,7 @@ export class REPLAdapter extends EventEmitter {
       // Extract response before the prompt
       const lines = this.responseBuffer.split('\n');
       const responseLines: string[] = [];
-      
+
       for (const line of lines) {
         if (line.includes('>>> ')) {
           break;
@@ -111,8 +110,7 @@ export class REPLAdapter extends EventEmitter {
       }
 
       const response = responseLines.join('\n').trim();
-      
-      
+
       clearTimeout(this.currentCommand.timeout);
       this.currentCommand.resolve(response);
       this.currentCommand = undefined;
@@ -125,9 +123,9 @@ export class REPLAdapter extends EventEmitter {
       throw new CommunicationError('Not connected');
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       this.responseBuffer = '';
-      
+
       const timeoutHandle = setTimeout(() => {
         this.currentCommand = undefined;
         reject(new TimeoutError(`Command timeout after ${timeout}ms`));
@@ -136,7 +134,7 @@ export class REPLAdapter extends EventEmitter {
       this.currentCommand = {
         resolve,
         reject,
-        timeout: timeoutHandle
+        timeout: timeoutHandle,
       };
 
       this.serialPort!.write(command + '\r\n');
@@ -146,12 +144,12 @@ export class REPLAdapter extends EventEmitter {
   async initialize(): Promise<void> {
     // Send Ctrl+C to interrupt any running program
     this.serialPort!.write(Buffer.from([0x03]));
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // Clear any pending input
     this.serialPort!.write('\r\n');
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     this.responseBuffer = '';
   }
 
@@ -168,19 +166,21 @@ export class REPLAdapter extends EventEmitter {
     try {
       await this.sendREPLCommand('import os');
       const osInfo = await this.sendREPLCommand('os.uname()');
-      
+
       await this.sendREPLCommand('import sys');
       const platform = await this.sendREPLCommand('sys.platform');
 
       // Parse the os.uname() output
-      const match = osInfo.match(/\(sysname='([^']+)', nodename='([^']+)', release='([^']+)', version='([^']+)', machine='([^']+)'\)/);
-      
+      const match = osInfo.match(
+        /\(sysname='([^']+)', nodename='([^']+)', release='([^']+)', version='([^']+)', machine='([^']+)'\)/
+      );
+
       return {
         platform: platform.replace(/'/g, '') || 'esp32',
         version: match ? match[3] : 'unknown',
         chipId: match ? match[2] : 'unknown',
         flashSize: 0, // Would need custom command to determine
-        ramSize: 0    // Would need custom command to determine
+        ramSize: 0, // Would need custom command to determine
       };
     } catch (error) {
       throw new CommunicationError(`Failed to get device info: ${error}`);
@@ -189,12 +189,12 @@ export class REPLAdapter extends EventEmitter {
 
   async executeCode(code: string): Promise<ExecutionResult> {
     const startTime = Date.now();
-    
+
     try {
       // For multi-line code, we need to handle it differently
       const lines = code.trim().split('\n');
       let output = '';
-      
+
       if (lines.length === 1) {
         // Single line command
         output = await this.sendREPLCommand(code, 10000);
@@ -204,24 +204,24 @@ export class REPLAdapter extends EventEmitter {
         const execCommand = `exec("${escapedCode}")`;
         output = await this.sendREPLCommand(execCommand, 10000);
       }
-      
+
       const executionTime = Date.now() - startTime;
-      
+
       return {
         output,
         exitCode: 0,
         executionTime,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       return {
         output: '',
         error: error instanceof Error ? error.message : String(error),
         exitCode: 1,
         executionTime,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
   }
@@ -230,43 +230,45 @@ export class REPLAdapter extends EventEmitter {
     try {
       await this.sendREPLCommand('import os');
       const result = await this.sendREPLCommand(`os.listdir('${path}')`);
-      
+
       // Parse the list result
       const match = result.match(/\[(.*)\]/);
       if (!match) {
         return [];
       }
-      
-      const items = match[1].split(',').map(item => item.trim().replace(/'/g, ''));
+
+      const items = match[1].split(',').map((item) => item.trim().replace(/'/g, ''));
       const entries: DirectoryEntry[] = [];
-      
+
       for (const item of items) {
-        if (!item) continue;
-        
+        if (!item) {
+          continue;
+        }
+
         try {
           // Check if it's a file or directory
           const fullPath = path.endsWith('/') ? path + item : path + '/' + item;
           const statResult = await this.sendREPLCommand(`os.stat('${fullPath}')`);
-          
+
           // Parse stat result to determine if it's a file or directory
           // In MicroPython, os.stat returns a tuple, and the first element indicates file type
           const isFile = !statResult.includes('directory') && item.includes('.');
-          
+
           entries.push({
             name: item,
             type: isFile ? 'file' : 'directory',
-            path: fullPath
+            path: fullPath,
           });
         } catch (error) {
           // If stat fails, guess based on extension
           entries.push({
             name: item,
             type: item.includes('.') ? 'file' : 'directory',
-            path: path.endsWith('/') ? path + item : path + '/' + item
+            path: path.endsWith('/') ? path + item : path + '/' + item,
           });
         }
       }
-      
+
       return entries;
     } catch (error) {
       throw new CommunicationError(`Failed to list directory: ${error}`);
@@ -281,30 +283,34 @@ with open('${path}', 'rb') as f:
     import binascii
     print(binascii.hexlify(f.read()).decode())
 `;
-      
+
       const result = await this.executeCode(command);
       // Extract the hex content from the output (last line usually)
       const lines = result.output.trim().split('\n');
       const hexContent = lines[lines.length - 1].trim();
-      
+
       if (!hexContent || hexContent === 'None' || hexContent.startsWith('exec(')) {
         throw new Error('File not found or empty');
       }
-      
+
       return Buffer.from(hexContent, 'hex');
     } catch (error) {
       throw new FileNotFoundError(path, error);
     }
   }
 
-  async writeFile(path: string, content: Buffer | string, options: WriteOptions = {}): Promise<void> {
+  async writeFile(
+    path: string,
+    content: Buffer | string,
+    options: WriteOptions = {}
+  ): Promise<void> {
     try {
       const data = typeof content === 'string' ? Buffer.from(content, 'utf8') : content;
       const hexData = data.toString('hex');
-      
+
       // For large files, use chunked writing to avoid timeout
       const maxHexSize = 2000; // Limit hex string size to prevent timeout
-      
+
       if (hexData.length > maxHexSize) {
         // Write file in chunks for large files
         for (let i = 0; i < hexData.length; i += maxHexSize) {
@@ -317,7 +323,7 @@ with open('${path}', '${mode}') as f:
 print('Chunk written')
 `;
           await this.executeCode(chunkCommand);
-          
+
           if (options.onProgress) {
             options.onProgress(Math.min(i + maxHexSize, hexData.length) / 2, data.length);
           }
@@ -330,9 +336,9 @@ with open('${path}', 'wb') as f:
     f.write(binascii.unhexlify('${hexData}'))
 print('File written successfully')
 `;
-        
-        const result = await this.executeCode(command);
-        
+
+        await this.executeCode(command);
+
         if (options.onProgress) {
           options.onProgress(data.length, data.length);
         }
@@ -368,7 +374,7 @@ print('File written successfully')
       port: this.portPath,
       connected: this.isConnected,
       busy: this.busy,
-      baudRate: this.baudRate
+      baudRate: this.baudRate,
     };
   }
 }

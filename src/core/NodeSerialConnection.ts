@@ -1,6 +1,6 @@
 /**
  * Node.js Serial Connection Implementation
- * 
+ *
  * Uses the 'serialport' package for Node.js environments
  */
 
@@ -25,7 +25,7 @@ export class NodeSerialConnection extends BaseSerialConnection {
         this.serialPort = new SerialPort({
           path: this.port,
           baudRate: this.options.baudRate,
-          autoOpen: false
+          autoOpen: false,
         });
 
         this.serialPort.on('open', () => {
@@ -47,7 +47,6 @@ export class NodeSerialConnection extends BaseSerialConnection {
         });
 
         this.serialPort.open();
-
       } catch (error) {
         reject(new CommunicationError(`Failed to initialize serial port: ${error}`));
       }
@@ -101,7 +100,7 @@ export class NodeSerialConnection extends BaseSerialConnection {
   /**
    * Get available serial ports
    */
-  static async listPorts(): Promise<any[]> {
+  static async listPorts(): Promise<unknown[]> {
     try {
       return await SerialPort.list();
     } catch (error) {

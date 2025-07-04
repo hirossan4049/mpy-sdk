@@ -1,25 +1,24 @@
 /**
  * M5Stack Device Manager
- * 
+ *
  * High-level device management and file operations
  */
 
 import { EventEmitter } from 'events';
-import {
-  DirectoryEntry,
-  WriteOptions,
-  ExecutionResult,
-  DeviceInfo,
-  CommandCode,
-  Command,
-  BulkTransferOptions,
-  FileTransferProgress,
-  DEFAULT_CONFIG,
-  FileNotFoundError,
-  CommunicationError,
-  DeviceBusyError
-} from '../types';
 import { BaseSerialConnection } from '../core/SerialConnection';
+import {
+  BulkTransferOptions,
+  Command,
+  CommandCode,
+  CommunicationError,
+  DEFAULT_CONFIG,
+  DeviceInfo,
+  DirectoryEntry,
+  ExecutionResult,
+  FileNotFoundError,
+  FileTransferProgress,
+  WriteOptions,
+} from '../types';
 import { FileTransferManager } from '../utils/FileTransfer';
 import { PythonAnalyzer } from '../utils/PythonAnalyzer';
 
@@ -62,7 +61,7 @@ export class DeviceManager extends EventEmitter {
     try {
       const command: Command = {
         code: CommandCode.IS_ONLINE,
-        data: Buffer.alloc(0)
+        data: Buffer.alloc(0),
       };
       const response = await this.connection.sendCommand(command);
       return response.data.toString() === 'done';
@@ -77,12 +76,12 @@ export class DeviceManager extends EventEmitter {
   async getDeviceInfo(): Promise<DeviceInfo> {
     const command: Command = {
       code: CommandCode.GET_INFO,
-      data: Buffer.alloc(0)
+      data: Buffer.alloc(0),
     };
 
     const response = await this.connection.sendCommand(command);
     const infoText = response.data.toString();
-    
+
     // Parse device info (implementation depends on M5Stack response format)
     return this.parseDeviceInfo(infoText);
   }
@@ -93,12 +92,12 @@ export class DeviceManager extends EventEmitter {
   async listDirectory(path: string = '/flash'): Promise<DirectoryEntry[]> {
     const command: Command = {
       code: CommandCode.LIST_DIR,
-      data: path
+      data: path,
     };
 
     const response = await this.connection.sendCommand(command);
     const dirList = response.data.toString();
-    
+
     return this.parseDirectoryListing(path, dirList);
   }
 
@@ -108,7 +107,7 @@ export class DeviceManager extends EventEmitter {
   async readFile(path: string): Promise<Buffer> {
     const command: Command = {
       code: CommandCode.GET_FILE,
-      data: path
+      data: path,
     };
 
     try {
@@ -122,15 +121,21 @@ export class DeviceManager extends EventEmitter {
   /**
    * Write file to device
    */
-  async writeFile(path: string, content: Buffer | string, options: WriteOptions = {}): Promise<void> {
+  async writeFile(
+    path: string,
+    content: Buffer | string,
+    options: WriteOptions = {}
+  ): Promise<void> {
     const data = typeof content === 'string' ? Buffer.from(content, 'utf8') : content;
-    
+
     const transferOptions: BulkTransferOptions = {
       chunkSize: DEFAULT_CONFIG.maxChunkSize,
-      onProgress: options.onProgress ? (progress) => {
-        options.onProgress!(progress.bytesTransferred, progress.totalBytes);
-      } : undefined,
-      retryAttempts: 3
+      onProgress: options.onProgress
+        ? (progress) => {
+            options.onProgress!(progress.bytesTransferred, progress.totalBytes);
+          }
+        : undefined,
+      retryAttempts: 3,
     };
 
     await this.fileTransfer.uploadFile(path, data, options.overwrite !== false, transferOptions);
@@ -142,7 +147,7 @@ export class DeviceManager extends EventEmitter {
   async deleteFile(path: string): Promise<void> {
     const command: Command = {
       code: CommandCode.REMOVE_FILE,
-      data: path
+      data: path,
     };
 
     const response = await this.connection.sendCommand(command);
@@ -156,10 +161,10 @@ export class DeviceManager extends EventEmitter {
    */
   async executeCode(code: string): Promise<ExecutionResult> {
     const startTime = Date.now();
-    
+
     const command: Command = {
       code: CommandCode.EXEC,
-      data: code
+      data: code,
     };
 
     try {
@@ -171,17 +176,17 @@ export class DeviceManager extends EventEmitter {
         output,
         exitCode: output.includes('done') ? 0 : 1,
         executionTime,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     } catch (error) {
       const executionTime = Date.now() - startTime;
-      
+
       return {
         output: '',
         error: error instanceof Error ? error.message : String(error),
         exitCode: 1,
         executionTime,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
     }
   }
@@ -202,12 +207,15 @@ export class DeviceManager extends EventEmitter {
   /**
    * Execute Python project with dependency resolution
    */
-  async executeProject(entryFile: string, options: { uploadMissing?: boolean } = {}): Promise<ExecutionResult> {
+  async executeProject(
+    entryFile: string,
+    options: { uploadMissing?: boolean } = {}
+  ): Promise<ExecutionResult> {
     try {
       // Analyze dependencies
       const content = await this.readFile(entryFile);
       const analysis = await this.pythonAnalyzer.analyzeProject(entryFile, content.toString());
-      
+
       if (options.uploadMissing && analysis.missingFiles.length > 0) {
         // Upload missing files (implementation depends on local file access)
         console.warn(`Missing dependencies: ${analysis.missingFiles.join(', ')}`);
@@ -216,7 +224,6 @@ export class DeviceManager extends EventEmitter {
 
       // Execute the main file
       return await this.executeCode(content.toString());
-      
     } catch (error) {
       throw new FileNotFoundError(entryFile, error);
     }
@@ -227,10 +234,10 @@ export class DeviceManager extends EventEmitter {
    */
   async setWifiConfig(ssid: string, password: string): Promise<void> {
     const wifiConfig = `${ssid}\n${password}`;
-    
+
     const command: Command = {
       code: CommandCode.SET_WIFI,
-      data: wifiConfig
+      data: wifiConfig,
     };
 
     const response = await this.connection.sendCommand(command);
@@ -242,11 +249,13 @@ export class DeviceManager extends EventEmitter {
   /**
    * Bulk file upload with progress
    */
-  async uploadFiles(files: Array<{ path: string; content: Buffer }>, 
-                   options: BulkTransferOptions = {}): Promise<void> {
+  async uploadFiles(
+    files: Array<{ path: string; content: Buffer }>,
+    options: BulkTransferOptions = {}
+  ): Promise<void> {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      
+
       if (options.onProgress) {
         const progress: FileTransferProgress = {
           filename: file.path,
@@ -254,23 +263,25 @@ export class DeviceManager extends EventEmitter {
           totalBytes: file.content.length,
           percentage: 0,
           chunkIndex: i,
-          totalChunks: files.length
+          totalChunks: files.length,
         };
         options.onProgress(progress);
       }
 
       await this.writeFile(file.path, file.content, {
-        onProgress: options.onProgress ? (bytes, total) => {
-          const progress: FileTransferProgress = {
-            filename: file.path,
-            bytesTransferred: bytes,
-            totalBytes: total,
-            percentage: (bytes / total) * 100,
-            chunkIndex: i,
-            totalChunks: files.length
-          };
-          options.onProgress!(progress);
-        } : undefined
+        onProgress: options.onProgress
+          ? (bytes, total) => {
+              const progress: FileTransferProgress = {
+                filename: file.path,
+                bytesTransferred: bytes,
+                totalBytes: total,
+                percentage: (bytes / total) * 100,
+                chunkIndex: i,
+                totalChunks: files.length,
+              };
+              options.onProgress!(progress);
+            }
+          : undefined,
       });
     }
   }
@@ -283,7 +294,7 @@ export class DeviceManager extends EventEmitter {
       connected: this.connection.connected,
       busy: this.connection.busy,
       port: this.connection.portName,
-      connection: this.connection.getStatus()
+      connection: this.connection.getStatus(),
     };
   }
 
@@ -292,12 +303,13 @@ export class DeviceManager extends EventEmitter {
    */
   private parseDeviceInfo(infoText: string): DeviceInfo {
     // This is a simplified parser - actual implementation would depend on M5Stack response format
+    console.debug(`Parsing device info: ${infoText}`);
     return {
       platform: 'M5Stack',
       version: '1.0.0',
       chipId: 'unknown',
       flashSize: 0,
-      ramSize: 0
+      ramSize: 0,
     };
   }
 
@@ -309,18 +321,23 @@ export class DeviceManager extends EventEmitter {
       return [];
     }
 
-    return dirList.split(',').map(item => {
-      const name = item.trim();
-      if (!name) return null;
+    return dirList
+      .split(',')
+      .map((item) => {
+        const name = item.trim();
+        if (!name) {
+          return null;
+        }
 
-      const isFile = name.includes('.');
-      const fullPath = basePath.endsWith('/') ? basePath + name : basePath + '/' + name;
+        const isFile = name.includes('.');
+        const fullPath = basePath.endsWith('/') ? basePath + name : basePath + '/' + name;
 
-      return {
-        name,
-        type: isFile ? 'file' as const : 'directory' as const,
-        path: fullPath
-      };
-    }).filter(Boolean) as DirectoryEntry[];
+        return {
+          name,
+          type: isFile ? ('file' as const) : ('directory' as const),
+          path: fullPath,
+        };
+      })
+      .filter(Boolean) as DirectoryEntry[];
   }
 }

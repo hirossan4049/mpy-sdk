@@ -1,6 +1,6 @@
 /**
  * File Transfer Utilities
- * 
+ *
  * Handles bulk file transfers with chunking, progress reporting, and error recovery
  */
 
@@ -10,7 +10,7 @@ import {
   BulkTransferOptions,
   FileTransferProgress,
   DEFAULT_CONFIG,
-  CommunicationError
+  CommunicationError,
 } from '../types';
 import { BaseSerialConnection } from '../core/SerialConnection';
 
@@ -36,7 +36,7 @@ export class FileTransferManager {
     // Single chunk upload
     if (content.length <= chunkSize) {
       await this.uploadSingleChunk(filename, content, overwrite ? 0x01 : 0x00);
-      
+
       if (options.onProgress) {
         const progress: FileTransferProgress = {
           filename,
@@ -44,11 +44,11 @@ export class FileTransferManager {
           totalBytes: content.length,
           percentage: 100,
           chunkIndex: 1,
-          totalChunks: 1
+          totalChunks: 1,
         };
         options.onProgress(progress);
       }
-      
+
       return;
     }
 
@@ -74,7 +74,7 @@ export class FileTransferManager {
           break;
         } catch (error) {
           lastError = error as Error;
-          
+
           if (attempt < retryAttempts) {
             // Wait before retry with exponential backoff
             await this.delay(100 * Math.pow(2, attempt));
@@ -98,7 +98,7 @@ export class FileTransferManager {
           totalBytes: content.length,
           percentage: (uploadedBytes / content.length) * 100,
           chunkIndex: i + 1,
-          totalChunks
+          totalChunks,
         };
         options.onProgress(progress);
       }
@@ -120,17 +120,17 @@ export class FileTransferManager {
       Buffer.from(filename, 'utf8'),
       Buffer.from([0x00]), // NULL terminator
       Buffer.from([flag]),
-      content
+      content,
     ]);
 
     const command: Command = {
       code: CommandCode.DOWNLOAD_FILE,
       data: commandBuffer.slice(1), // Remove the command code as it's added by the protocol handler
-      timeout: 10000 // Extended timeout for file operations
+      timeout: 10000, // Extended timeout for file operations
     };
 
     const response = await this.connection.sendCommandWithRetry(command, 2);
-    
+
     if (!response.data.toString().includes('done')) {
       throw new CommunicationError(`Upload failed: ${response.data.toString()}`);
     }
@@ -142,7 +142,7 @@ export class FileTransferManager {
   async downloadFile(filename: string): Promise<Buffer> {
     const command: Command = {
       code: CommandCode.GET_FILE,
-      data: filename
+      data: filename,
     };
 
     const response = await this.connection.sendCommand(command);
@@ -157,24 +157,26 @@ export class FileTransferManager {
     options: BulkTransferOptions = {}
   ): Promise<void> {
     const totalFiles = files.length;
-    
+
     for (let i = 0; i < totalFiles; i++) {
       const file = files[i];
-      
+
       // Create per-file progress callback
       const fileOptions: BulkTransferOptions = {
         ...options,
-        onProgress: options.onProgress ? (progress) => {
-          // Adjust progress to account for multiple files
-          const overallProgress: FileTransferProgress = {
-            ...progress,
-            filename: file.filename,
-            chunkIndex: i + 1,
-            totalChunks: totalFiles,
-            percentage: ((i + progress.percentage / 100) / totalFiles) * 100
-          };
-          options.onProgress!(overallProgress);
-        } : undefined
+        onProgress: options.onProgress
+          ? (progress) => {
+              // Adjust progress to account for multiple files
+              const overallProgress: FileTransferProgress = {
+                ...progress,
+                filename: file.filename,
+                chunkIndex: i + 1,
+                totalChunks: totalFiles,
+                percentage: ((i + progress.percentage / 100) / totalFiles) * 100,
+              };
+              options.onProgress!(overallProgress);
+            }
+          : undefined,
       };
 
       await this.uploadFile(file.filename, file.content, true, fileOptions);
@@ -196,7 +198,10 @@ export class FileTransferManager {
   /**
    * Get upload statistics
    */
-  calculateTransferStats(content: Buffer, chunkSize: number = DEFAULT_CONFIG.maxChunkSize): {
+  calculateTransferStats(
+    content: Buffer,
+    chunkSize: number = DEFAULT_CONFIG.maxChunkSize
+  ): {
     totalBytes: number;
     totalChunks: number;
     estimatedTime: number; // rough estimate in seconds
@@ -208,7 +213,7 @@ export class FileTransferManager {
     return {
       totalBytes,
       totalChunks,
-      estimatedTime
+      estimatedTime,
     };
   }
 
@@ -216,7 +221,7 @@ export class FileTransferManager {
    * Utility: delay function
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -246,7 +251,7 @@ export class FileTransferManager {
     if (contentSize < 512) {
       return Math.min(contentSize, 128);
     }
-    
+
     // Use standard chunk size for larger files
     return DEFAULT_CONFIG.maxChunkSize;
   }

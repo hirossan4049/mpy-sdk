@@ -1,6 +1,6 @@
 /**
  * @hirossan4049/mpy-sdk Type Definitions
- * 
+ *
  * Comprehensive type definitions for M5Stack serial communication
  */
 
@@ -15,11 +15,11 @@ export interface PortInfo {
 }
 
 export interface ClientOptions {
-  timeout?: number;           // Default: 5000ms
-  logLevel?: LogLevel;        // Default: 'info'
-  autoReconnect?: boolean;    // Default: false
-  maxRetries?: number;        // Default: 3
-  baudRate?: number;          // Default: 115200
+  timeout?: number; // Default: 5000ms
+  logLevel?: LogLevel; // Default: 'info'
+  autoReconnect?: boolean; // Default: false
+  maxRetries?: number; // Default: 3
+  baudRate?: number; // Default: 115200
 }
 
 export interface ConnectionOptions {
@@ -37,7 +37,7 @@ export interface DirectoryEntry {
 }
 
 export interface WriteOptions {
-  overwrite?: boolean;        // Default: true
+  overwrite?: boolean; // Default: true
   createDirectories?: boolean; // Default: false
   encoding?: 'utf8' | 'binary'; // Default: 'utf8'
   onProgress?: (bytesWritten: number, totalBytes: number) => void;
@@ -97,12 +97,12 @@ export enum ResponseStatus {
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface ConnectionEventMap {
-  'connect': () => void;
-  'disconnect': () => void;
-  'data': (data: Buffer) => void;
-  'error': (error: Error) => void;
-  'busy': (busy: boolean) => void;
-  'timeout': () => void;
+  connect: () => void;
+  disconnect: () => void;
+  data: (data: Buffer) => void;
+  error: (error: Error) => void;
+  busy: (busy: boolean) => void;
+  timeout: () => void;
 }
 
 export interface ProtocolFrame {
@@ -124,10 +124,10 @@ export interface FileTransferProgress {
 }
 
 export interface BulkTransferOptions {
-  chunkSize?: number;         // Default: 256 bytes
+  chunkSize?: number; // Default: 256 bytes
   onProgress?: (progress: FileTransferProgress) => void;
   onChunkComplete?: (chunkIndex: number, totalChunks: number) => void;
-  retryAttempts?: number;     // Default: 3
+  retryAttempts?: number; // Default: 3
 }
 
 // Import Analysis Types
@@ -166,7 +166,7 @@ export class M5StackError extends Error {
   constructor(
     message: string,
     public code: string,
-    public details?: any
+    public details?: unknown
   ) {
     super(message);
     this.name = 'M5StackError';
@@ -174,28 +174,28 @@ export class M5StackError extends Error {
 }
 
 export class CommunicationError extends M5StackError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: unknown) {
     super(message, 'COMMUNICATION_ERROR', details);
     this.name = 'CommunicationError';
   }
 }
 
 export class TimeoutError extends M5StackError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: unknown) {
     super(message, 'TIMEOUT_ERROR', details);
     this.name = 'TimeoutError';
   }
 }
 
 export class DeviceBusyError extends M5StackError {
-  constructor(message: string, details?: any) {
+  constructor(message: string, details?: unknown) {
     super(message, 'DEVICE_BUSY_ERROR', details);
     this.name = 'DeviceBusyError';
   }
 }
 
 export class FileNotFoundError extends M5StackError {
-  constructor(filename: string, details?: any) {
+  constructor(filename: string, details?: unknown) {
     super(`File not found: ${filename}`, 'FILE_NOT_FOUND_ERROR', details);
     this.name = 'FileNotFoundError';
   }
@@ -213,10 +213,10 @@ export interface ISerialConnection {
 }
 
 export interface ILogger {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+  debug(message: string, ...args: unknown[]): void;
+  info(message: string, ...args: unknown[]): void;
+  warn(message: string, ...args: unknown[]): void;
+  error(message: string, ...args: unknown[]): void;
 }
 
 export interface IPlatformAdapter {

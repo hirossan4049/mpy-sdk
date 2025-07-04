@@ -1,13 +1,13 @@
 /**
  * @hirossan4049/mpy-sdk
- * 
+ *
  * Node.js M5Stack serial communication library
  */
 
 // Core exports
-export { BaseSerialConnection } from './core/SerialConnection';
 export { NodeSerialConnection } from './core/NodeSerialConnection';
 export { ProtocolHandler } from './core/ProtocolHandler';
+export { BaseSerialConnection } from './core/SerialConnection';
 
 // Adapter exports
 export { REPLAdapter } from './adapters/REPLAdapter';
@@ -24,16 +24,16 @@ export * from './types';
 
 // Main client class
 import { EventEmitter } from 'events';
-import {
-  ClientOptions,
-  PortInfo,
-  LogLevel,
-  ILogger,
-  DEFAULT_CONFIG,
-  CommunicationError
-} from './types';
 import { NodeSerialConnection } from './core/NodeSerialConnection';
 import { DeviceManager } from './manager/DeviceManager';
+import {
+  ClientOptions,
+  CommunicationError,
+  DEFAULT_CONFIG,
+  ILogger,
+  LogLevel,
+  PortInfo,
+} from './types';
 
 /**
  * Simple console logger implementation
@@ -41,25 +41,25 @@ import { DeviceManager } from './manager/DeviceManager';
 class ConsoleLogger implements ILogger {
   constructor(private level: LogLevel) {}
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog('debug')) {
       console.debug(`[DEBUG] ${message}`, ...args);
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     if (this.shouldLog('info')) {
       console.info(`[INFO] ${message}`, ...args);
     }
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     if (this.shouldLog('warn')) {
       console.warn(`[WARN] ${message}`, ...args);
     }
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     if (this.shouldLog('error')) {
       console.error(`[ERROR] ${message}`, ...args);
     }
@@ -101,13 +101,13 @@ export class M5StackClient extends EventEmitter {
 
   constructor(options: ClientOptions = {}) {
     super();
-    
+
     this.options = {
       timeout: options.timeout || DEFAULT_CONFIG.defaultTimeout,
       logLevel: options.logLevel || 'info',
       autoReconnect: options.autoReconnect || false,
       maxRetries: options.maxRetries || 3,
-      baudRate: options.baudRate || DEFAULT_CONFIG.defaultBaudRate
+      baudRate: options.baudRate || DEFAULT_CONFIG.defaultBaudRate,
     };
 
     this.logger = new ConsoleLogger(this.options.logLevel);
@@ -120,7 +120,7 @@ export class M5StackClient extends EventEmitter {
   async listPorts(): Promise<PortInfo[]> {
     try {
       this.logger.debug('Listing available ports');
-      return await NodeSerialConnection.listPorts();
+      return (await NodeSerialConnection.listPorts()) as PortInfo[];
     } catch (error) {
       this.logger.error('Failed to list ports:', error);
       throw new CommunicationError(`Failed to list ports: ${error}`);
@@ -147,11 +147,11 @@ export class M5StackClient extends EventEmitter {
       const serialConnection = new NodeSerialConnection(port, {
         baudRate: this.options.baudRate,
         timeout: this.options.timeout,
-        autoReconnect: this.options.autoReconnect
+        autoReconnect: this.options.autoReconnect,
       });
 
       const connection = new Connection(serialConnection);
-      
+
       // Forward events
       connection.on('connect', () => {
         this.logger.info(`Connected to ${port}`);
@@ -171,9 +171,8 @@ export class M5StackClient extends EventEmitter {
 
       await connection.connect();
       this.connections.set(port, connection);
-      
-      return connection;
 
+      return connection;
     } catch (error) {
       this.logger.error(`Failed to connect to ${port}:`, error);
       throw new CommunicationError(`Failed to connect to ${port}: ${error}`);
@@ -191,7 +190,7 @@ export class M5StackClient extends EventEmitter {
     }
 
     this.logger.info(`Disconnecting from ${port}`);
-    
+
     try {
       await connection.disconnect();
       this.connections.delete(port);
@@ -206,10 +205,8 @@ export class M5StackClient extends EventEmitter {
    */
   async disconnectAll(): Promise<void> {
     const ports = Array.from(this.connections.keys());
-    
-    await Promise.allSettled(
-      ports.map(port => this.disconnect(port))
-    );
+
+    await Promise.allSettled(ports.map((port) => this.disconnect(port)));
   }
 
   /**
@@ -253,8 +250,8 @@ export class M5StackClient extends EventEmitter {
       connections: Array.from(this.connections.entries()).map(([port, conn]) => ({
         port,
         connected: conn.isConnected,
-        busy: conn.isBusy
-      }))
+        busy: conn.isBusy,
+      })),
     };
   }
 
@@ -263,7 +260,7 @@ export class M5StackClient extends EventEmitter {
    */
   async healthCheck(): Promise<{ [port: string]: boolean }> {
     const results: { [port: string]: boolean } = {};
-    
+
     for (const [port, connection] of this.connections) {
       try {
         results[port] = await connection.isOnline();
@@ -272,7 +269,7 @@ export class M5StackClient extends EventEmitter {
         results[port] = false;
       }
     }
-    
+
     return results;
   }
 }
