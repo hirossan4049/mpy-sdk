@@ -1,82 +1,81 @@
-# @hirossan4049/mpy-sdk
+# @h1mpy-sdk
 
-MicroPython SDK for M5Stack devices - Node.js serial communication library.
+Cross-platform MicroPython SDK for M5Stack devices with Node.js and Web Serial support.
 
 ## Features
 
-- 🔗 **Node.js**: Built specifically for Node.js environments
+- 🔗 **Dual Platform**: Node.js and Browser (Web Serial) support
 - 🛡️ **Type Safe**: Full TypeScript support with comprehensive type definitions
 - 📁 **File Management**: Upload, download, and manage files on M5Stack devices
-- 🐍 **Python Execution**: Execute Python code and scripts remotely
+- 🐍 **REPL & Protocol Modes**: Interactive REPL and binary protocol communication
 - 📊 **Progress Tracking**: Real-time progress updates for file transfers
 - 🔄 **Auto Retry**: Built-in retry logic for reliable communication
-- 🌐 **Browser Ready**: Supports Chrome's Web Serial API for web apps
-- 🧩 **Dependency Analysis**: Analyze Python imports and dependencies
+- 🌐 **Web Serial Ready**: Browser support via Chrome's Web Serial API
+- 🧩 **Monorepo Architecture**: Shared core logic with platform-specific adapters
 - 📱 **Cross-OS**: Works on Windows, macOS, and Linux
+- ⚡ **Real Hardware Tested**: Verified with actual M5Stack devices
 
 ## Installation
 
 ```bash
-pnpm add @hirossan4049/mpy-sdk
+npm i @h1mpy-sdk/node   # Node.js environments
+npm i @h1mpy-sdk/web    # Browser apps via Web Serial
 ```
 
-The serialport dependency is included automatically.
+The `serialport` dependency is included automatically when using the Node package.
+
+### Packages
+
+The project is organised as a small monorepo:
+
+- `@h1mpy-sdk/core` – common logic and utilities
+- `@h1mpy-sdk/node` – Node.js serial implementation
+- `@h1mpy-sdk/web` – browser/Web Serial support
 
 ## Quick Start
 
-### Quick Test
-For a simple connection test:
+### Node.js Examples
+Working examples with real M5Stack hardware:
 
 ```bash
-# First time setup: install dependencies
-pnpm install
+# Install dependencies and build
+pnpm install && pnpm build
 
-# Run quick test (builds automatically)
-pnpm test:quick
+# Node.js examples (in examples/node/)
+node working-test.js              # ✅ Verified working example
+node basic-connection-test.js     # Simple debugging test
+node simple-repl-test.js          # Basic REPL functionality
+
+# Web examples (in examples/web/)
+cd examples/web && pnpm dev      # Start web development server
+# Then open http://localhost:3000 in Chrome/Edge
 ```
 
-### Interactive CLI
-Start the interactive command line interface:
+### Development Commands
 
 ```bash
-pnpm cli
-```
+# Build all packages
+pnpm build              # Build Node.js and Web packages
+pnpm build:node         # CommonJS for Node.js only
+pnpm build:types        # TypeScript definitions only
 
-### Testing & Examples
-Run examples and tests for functionality:
+# Development
+pnpm dev                # Quick development build
+pnpm lint               # Run ESLint
+pnpm format             # Format with Prettier
+pnpm clean              # Clean build artifacts
 
-```bash
-# Unit tests
-pnpm test              # Run all tests
-pnpm test:watch        # Run tests in watch mode
-pnpm test:coverage     # Run tests with coverage
-
-# Quick connection test - validates basic functionality
-pnpm test:quick
-
-# Interactive CLI tools
-pnpm cli               # Interactive CLI with TypeScript
-pnpm cli:tui           # Terminal UI version
-
-# REPL adapter example with M5Stack features
-pnpm example:repl
-
-# Basic SDK usage example
-pnpm example:basic
-
-# Firmware persistence example
-pnpm example:persist
-
-# Flash sample programs
-pnpm flash:sample      # Flash sample programs
-pnpm flash:simple      # Flash simple program
-pnpm flash:advanced    # Flash advanced program
+# Testing
+pnpm test               # Run all unit tests
+pnpm test:watch         # Run tests in watch mode
+pnpm test:coverage      # Run tests with coverage
 ```
 
 ### Basic Usage
 
+#### Node.js
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk';
+import { M5StackClient } from '@h1mpy-sdk/node';
 
 const client = new M5StackClient({
   timeout: 10000,
@@ -105,6 +104,21 @@ await connection.writeFile('/flash/main.py', 'print("Hello World")');
 await client.disconnect('/dev/ttyUSB0');
 ```
 
+#### Browser (Web Serial)
+```typescript
+import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
+
+// Request port access (user interaction required)
+const port = await WebSerialConnection.requestPort();
+
+const client = new M5StackClient();
+const connection = await client.connect(port);
+
+// Same API as Node.js version
+const result = await connection.executeCode('print("Hello from Browser!")');
+console.log('Output:', result.output);
+```
+
 ### File Transfer with Progress
 
 ```typescript
@@ -121,7 +135,7 @@ await connection.writeFile('/flash/script.py', fileContent, {
 ### Python Dependency Analysis
 
 ```typescript
-import { PythonAnalyzer } from '@hirossan4049/mpy-sdk';
+import { PythonAnalyzer } from '@h1mpy-sdk/node';
 
 const analyzer = new PythonAnalyzer();
 const code = `
@@ -242,14 +256,14 @@ interface ExecutionResult {
 ### Node.js
 
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk';
+import { M5StackClient } from '@h1mpy-sdk/node';
 // Uses 'serialport' package automatically
 ```
 
 ### Browser (Web Serial API)
 
 ```typescript
-import { M5StackClient, WebSerialConnection } from '@hirossan4049/mpy-sdk/browser';
+import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
 
 const port = await WebSerialConnection.requestPort();
 const client = new M5StackClient();
@@ -259,7 +273,7 @@ const connection = await client.connect(port);
 ### React Native
 
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk/react-native';
+import { M5StackClient } from '@h1mpy-sdk/react-native';
 // Uses react-native-serial
 ```
 
@@ -268,7 +282,7 @@ import { M5StackClient } from '@hirossan4049/mpy-sdk/react-native';
 ### Custom Protocol Handler
 
 ```typescript
-import { ProtocolHandler } from '@hirossan4049/mpy-sdk';
+import { ProtocolHandler } from '@h1mpy-sdk/node';
 
 const protocol = new ProtocolHandler();
 const frame = protocol.createFrame(commandBuffer);
@@ -277,7 +291,7 @@ const frame = protocol.createFrame(commandBuffer);
 ### File Transfer Management
 
 ```typescript
-import { FileTransferManager } from '@hirossan4049/mpy-sdk';
+import { FileTransferManager } from '@h1mpy-sdk/node';
 
 const transferManager = new FileTransferManager(connection);
 await transferManager.uploadFile(filename, content, true, {
@@ -290,7 +304,7 @@ await transferManager.uploadFile(filename, content, true, {
 ### Python Code Analysis
 
 ```typescript
-import { PythonAnalyzer } from '@hirossan4049/mpy-sdk';
+import { PythonAnalyzer } from '@h1mpy-sdk/node';
 
 const analyzer = new PythonAnalyzer();
 const analysis = await analyzer.analyzeProject('main.py', codeContent);
@@ -349,7 +363,7 @@ import {
   TimeoutError, 
   DeviceBusyError, 
   FileNotFoundError 
-} from '@hirossan4049/mpy-sdk';
+} from '@h1mpy-sdk/node';
 
 try {
   await connection.executeCode('print("hello")');
