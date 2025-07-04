@@ -148,6 +148,28 @@ class WebDeviceManager extends BrowserEventEmitter {
     return this.connection.busy;
   }
 
+  /**
+   * Extract the actual value from REPL command output
+   * Removes command echo and extracts the result
+   */
+  private extractREPLValue(output: string): string {
+    if (!output || !output.trim()) {
+      return '';
+    }
+    
+    const lines = output.trim().split('\n');
+    // Get the last non-empty line which should be the result
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i].trim();
+      if (line && !line.startsWith('>>>') && !line.startsWith('...')) {
+        // Remove surrounding quotes if present
+        return line.replace(/^['"]|['"]$/g, '');
+      }
+    }
+    
+    return '';
+  }
+
   private async initializeREPL(): Promise<void> {
     // This method will be called after connection is established
     if (this.connection.connected) {
@@ -222,25 +244,65 @@ class WebDeviceManager extends BrowserEventEmitter {
         }
 
         try {
-          // Check if it's a file or directory
+          // Check if it's a file or directory and get size
           const fullPath = path.endsWith('/') ? path + item : path + '/' + item;
           const statResult = await this.connection.sendREPLCommand(`os.stat('${fullPath}')`);
-
-          // Parse stat result to determine if it's a file or directory
-          const isFile = !statResult.includes('directory') && item.includes('.');
+          
+          // Parse stat result tuple: (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime)
+          const cleanStatResult = this.extractREPLValue(statResult);
+          const statMatch = cleanStatResult.match(/\(([^)]+)\)/);
+          
+          let size = 0;
+          let isDirectory = false;
+          
+          if (statMatch) {
+            const statValues = statMatch[1].split(',').map(v => v.trim());
+            if (statValues.length >= 7) {
+              // Extract file size (7th element in stat tuple)
+              size = parseInt(statValues[6]) || 0;
+              
+              // Extract mode (1st element) to check if it's a directory
+              const mode = parseInt(statValues[0]) || 0;
+              // Directory mode in MicroPython is typically 0o040000 (16384)
+              isDirectory = (mode & 0o040000) !== 0;
+            }
+          }
+          
+          // Fallback: if no clear directory indication, guess by extension
+          if (!isDirectory && !item.includes('.') && size === 0) {
+            isDirectory = true;
+          }
 
           entries.push({
             name: item,
-            size: 0, // Would need additional command to get size
-            isDirectory: !isFile,
+            size: size,
+            isDirectory: isDirectory,
             path: fullPath,
           });
         } catch (error) {
-          // If stat fails, guess based on extension
+          // If stat fails, guess based on extension and try to get size differently
+          const isDirectory = !item.includes('.');
+          let size = 0;
+          
+          if (!isDirectory) {
+            try {
+              // Try to get file size using a different method
+              const fullPath = path.endsWith('/') ? path + item : path + '/' + item;
+              const sizeResult = await this.connection.sendREPLCommand(
+                `len(open('${fullPath}', 'rb').read())`
+              );
+              const cleanSize = this.extractREPLValue(sizeResult);
+              size = parseInt(cleanSize) || 0;
+            } catch (sizeError) {
+              // File might not exist or be accessible
+              size = 0;
+            }
+          }
+          
           entries.push({
             name: item,
-            size: 0,
-            isDirectory: !item.includes('.'),
+            size: size,
+            isDirectory: isDirectory,
             path: path.endsWith('/') ? path + item : path + '/' + item,
           });
         }
@@ -389,7 +451,8 @@ with open('${path}', 'rb') as f:
         // Get flash size using esp module
         await this.connection.sendREPLCommand('import esp');
         const flashSizeResult = await this.connection.sendREPLCommand('esp.flash_size()');
-        flashSize = parseInt(flashSizeResult.trim()) || 0;
+        const cleanFlashSize = this.extractREPLValue(flashSizeResult);
+        flashSize = parseInt(cleanFlashSize) || 0;
       } catch (error) {
         console.warn('Could not get flash size:', error);
       }
@@ -398,29 +461,34 @@ with open('${path}', 'rb') as f:
         // Get free RAM using gc module
         await this.connection.sendREPLCommand('import gc');
         const ramResult = await this.connection.sendREPLCommand('gc.mem_free()');
-        ramSize = parseInt(ramResult.trim()) || 0;
+        const cleanRamSize = this.extractREPLValue(ramResult);
+        ramSize = parseInt(cleanRamSize) || 0;
       } catch (error) {
         console.warn('Could not get RAM size:', error);
       }
 
+      let macResult = '';
       try {
         // Get MAC address using network module
         await this.connection.sendREPLCommand('import network');
         await this.connection.sendREPLCommand('wlan = network.WLAN(network.STA_IF)');
         await this.connection.sendREPLCommand('mac = wlan.config("mac")');
-        const macResult = await this.connection.sendREPLCommand('":".join(["%02X" % b for b in mac])');
-        macAddress = macResult.trim().replace(/'/g, '');
+        macResult = await this.connection.sendREPLCommand('":".join(["%02X" % b for b in mac])');
       } catch (error) {
         console.warn('Could not get MAC address:', error);
       }
 
+      // Extract clean values from REPL output
+      const cleanPlatform = this.extractREPLValue(platform) || 'esp32';
+      const cleanMacAddress = this.extractREPLValue(macResult) || 'unknown';
+      
       return {
-        platform: platform.replace(/'/g, '') || 'esp32',
+        platform: cleanPlatform,
         version: match ? match[3] : 'unknown',
         chipId: match ? match[2] : 'unknown',
         flashSize: flashSize,
         ramSize: ramSize,
-        macAddress: macAddress,
+        macAddress: cleanMacAddress,
       };
     } catch (error) {
       console.error('Failed to get device info:', error);
