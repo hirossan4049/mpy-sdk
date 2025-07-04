@@ -5,11 +5,13 @@ This example demonstrates how to use the `@h1mpy-sdk/web` package to communicate
 ## Features
 
 - 🔌 **Web Serial Connection**: Connect to M5Stack devices directly from the browser
-- 📄 **File Management**: Upload, list, and manage files on the device
+- 📄 **File Management**: Upload, list, and manage files on the device with correct file sizes
 - 🐍 **Code Execution**: Execute Python code remotely on the M5Stack
 - 📊 **Progress Tracking**: Real-time progress updates for file transfers
 - 🎨 **Interactive UI**: Clean, responsive interface for device interaction
 - 📱 **Sample Programs**: Pre-built examples for LCD, sensors, and basic functionality
+- ✅ **Enhanced REPL Parsing**: Improved output parsing for device info and file operations
+- 🔧 **Bug Fixes**: Fixed device info display and file size reporting
 
 ## Browser Requirements
 

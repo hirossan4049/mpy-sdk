@@ -1,18 +1,19 @@
 # @h1mpy-sdk
 
-MicroPython SDK for M5Stack devices - Node.js serial communication library.
+Cross-platform MicroPython SDK for M5Stack devices with Node.js and Web Serial support.
 
 ## Features
 
-- 🔗 **Node.js**: Built specifically for Node.js environments
+- 🔗 **Dual Platform**: Node.js and Browser (Web Serial) support
 - 🛡️ **Type Safe**: Full TypeScript support with comprehensive type definitions
 - 📁 **File Management**: Upload, download, and manage files on M5Stack devices
-- 🐍 **Python Execution**: Execute Python code and scripts remotely
+- 🐍 **REPL & Protocol Modes**: Interactive REPL and binary protocol communication
 - 📊 **Progress Tracking**: Real-time progress updates for file transfers
 - 🔄 **Auto Retry**: Built-in retry logic for reliable communication
-- 🌐 **Browser Ready**: Supports Chrome's Web Serial API for web apps
-- 🧩 **Dependency Analysis**: Analyze Python imports and dependencies
+- 🌐 **Web Serial Ready**: Browser support via Chrome's Web Serial API
+- 🧩 **Monorepo Architecture**: Shared core logic with platform-specific adapters
 - 📱 **Cross-OS**: Works on Windows, macOS, and Linux
+- ⚡ **Real Hardware Tested**: Verified with actual M5Stack devices
 
 ## Installation
 
@@ -33,57 +34,46 @@ The project is organised as a small monorepo:
 
 ## Quick Start
 
-### Quick Test
-For a simple connection test:
+### Node.js Examples
+Working examples with real M5Stack hardware:
 
 ```bash
-# First time setup: install dependencies
-pnpm install
+# Install dependencies and build
+pnpm install && pnpm build
 
-# Run quick test (builds automatically)
-pnpm test:quick
+# Node.js examples (in examples/node/)
+node working-test.js              # ✅ Verified working example
+node basic-connection-test.js     # Simple debugging test
+node simple-repl-test.js          # Basic REPL functionality
+
+# Web examples (in examples/web/)
+cd examples/web && pnpm dev      # Start web development server
+# Then open http://localhost:3000 in Chrome/Edge
 ```
 
-### Interactive CLI
-Start the interactive command line interface:
+### Development Commands
 
 ```bash
-pnpm cli
-```
+# Build all packages
+pnpm build              # Build Node.js and Web packages
+pnpm build:node         # CommonJS for Node.js only
+pnpm build:types        # TypeScript definitions only
 
-### Testing & Examples
-Run examples and tests for functionality:
+# Development
+pnpm dev                # Quick development build
+pnpm lint               # Run ESLint
+pnpm format             # Format with Prettier
+pnpm clean              # Clean build artifacts
 
-```bash
-# Unit tests
-pnpm test              # Run all tests
-pnpm test:watch        # Run tests in watch mode
-pnpm test:coverage     # Run tests with coverage
-
-# Quick connection test - validates basic functionality
-pnpm test:quick
-
-# Interactive CLI tools
-pnpm cli               # Interactive CLI with TypeScript
-pnpm cli:tui           # Terminal UI version
-
-# REPL adapter example with M5Stack features
-pnpm example:repl
-
-# Basic SDK usage example
-pnpm example:basic
-
-# Firmware persistence example
-pnpm example:persist
-
-# Flash sample programs
-pnpm flash:sample      # Flash sample programs
-pnpm flash:simple      # Flash simple program
-pnpm flash:advanced    # Flash advanced program
+# Testing
+pnpm test               # Run all unit tests
+pnpm test:watch         # Run tests in watch mode
+pnpm test:coverage      # Run tests with coverage
 ```
 
 ### Basic Usage
 
+#### Node.js
 ```typescript
 import { M5StackClient } from '@h1mpy-sdk/node';
 
@@ -112,6 +102,21 @@ await connection.writeFile('/flash/main.py', 'print("Hello World")');
 
 // Disconnect
 await client.disconnect('/dev/ttyUSB0');
+```
+
+#### Browser (Web Serial)
+```typescript
+import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
+
+// Request port access (user interaction required)
+const port = await WebSerialConnection.requestPort();
+
+const client = new M5StackClient();
+const connection = await client.connect(port);
+
+// Same API as Node.js version
+const result = await connection.executeCode('print("Hello from Browser!")');
+console.log('Output:', result.output);
 ```
 
 ### File Transfer with Progress

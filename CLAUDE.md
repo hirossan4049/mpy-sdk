@@ -241,13 +241,16 @@ The SDK builds to two targets:
 
 ### 6. Examples and Real Hardware Testing
 - **Node.js Examples**: Complete working examples in `examples/node/`
-  - `working-test.js` - Verified with real M5Stack hardware (36ms response time)
-  - `basic-usage.js` - Comprehensive operations demo
-  - `simple-repl-test.js` - Quick REPL verification
+  - `working-test.js` - ✅ Verified with real M5Stack hardware (36ms response time)
+  - `basic-connection-test.js` - Simple debugging test for troubleshooting
+  - `simple-repl-test.js` - Basic REPL functionality verification
+  - `repl-example.js` - Comprehensive REPL adapter usage (CommonJS)
+  - **Note**: Some examples may timeout if device is unresponsive - reset M5Stack physically
 - **Web Examples**: Browser-based examples in `examples/web/`
-  - Real Web Serial API implementation
+  - Real Web Serial API implementation with improved REPL parsing
   - Interactive web interface with connection management
   - File operations and code execution via browser
+  - Fixed device info and file listing display bugs
 
 ## Real Hardware Test Results
 
