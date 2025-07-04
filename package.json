@@ -17,24 +17,21 @@
     }
   },
   "scripts": {
-    "build": "npm run clean && npm run build:node && npm run build:types",
+    "build": "pnpm clean && pnpm build:node && pnpm build:types",
     "build:node": "tsc -p tsconfig.node.json",
     "build:types": "tsc -p tsconfig.types.json",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "test": "vitest",
-    "test:watch": "vitest watch",
-    "test:coverage": "vitest run --coverage",
     "clean": "rimraf dist",
-    "dev": "npm run build:node",
-    "quick-test": "npm run build:node && node quick-test.js",
-    "demo": "npm run build:node && node examples/repl-adapter-example.js",
-    "example": "npm run build:node && node examples/basic-usage.js",
-    "cli": "npm run build:node && node cli.js",
-    "persist": "npm run build:node && node examples/firmware-persistence.js",
-    "prepublishOnly": "npm run clean && npm run build && npm run quick-test"
+    "dev": "pnpm build:node",
+    "quick-test": "pnpm build:node && node quick-test.js",
+    "demo": "pnpm build:node && node examples/repl-adapter-example.js",
+    "example": "pnpm build:node && node examples/basic-usage.js",
+    "cli": "pnpm build:node && node cli.js",
+    "persist": "pnpm build:node && node examples/firmware-persistence.js",
+    "prepublishOnly": "pnpm clean && pnpm build && pnpm quick-test"
   },
   "keywords": [
     "m5stack",
@@ -67,12 +64,10 @@
     "@types/node": "^20.11.0",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
-    "@vitest/coverage-v8": "^1.2.0",
     "eslint": "^8.56.0",
     "prettier": "^3.2.0",
     "rimraf": "^5.0.5",
-    "typescript": "^5.3.3",
-    "vitest": "^1.2.0"
+    "typescript": "^5.3.3"
   },
   "dependencies": {
     "serialport": "^13.0.0"

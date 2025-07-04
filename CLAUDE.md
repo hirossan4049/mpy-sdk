@@ -10,11 +10,13 @@ This is the @hirossan4049/mpy-sdk package - a Node.js SDK for M5Stack MicroPytho
 
 ### Build and Development
 
-**Package Manager: pnpm**
+**Package Manager: pnpm (REQUIRED)**
 
 ```bash
 # Install dependencies
 pnpm install
+
+# IMPORTANT: Always use pnpm, never npm or yarn
 
 # Build all targets (Node.js, Browser, Types)
 pnpm build
@@ -185,5 +187,16 @@ const result = await adapter.executeCode('print("Hello M5Stack")');
 - `serialport` ^13.0.0: Core serial communication library
 
 **Development**: Standard TypeScript toolchain
-- TypeScript, ESLint, Webpack
+- TypeScript, ESLint
 - Type definitions for Node.js and serialport
+
+## Important Development Rules
+
+### 1. Package Manager
+- **ALWAYS use pnpm** - Never use npm or yarn
+- All scripts in package.json use pnpm commands
+
+### 2. TypeScript Configuration
+- **NEVER modify tsconfig.json** - The configuration is carefully tuned for modern TypeScript best practices
+- The tsconfig uses ES2022 target with strict mode and all safety checks enabled
+- If you encounter type errors, fix the code, not the config
