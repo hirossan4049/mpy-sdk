@@ -1,26 +1,30 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
-yarn-error.log
+.pnpm-store/
 
 # Build outputs  
 dist/
 build/
 out/
 coverage/
+*.tsbuildinfo
 
 # OS files
 .DS_Store
-*.vsix
+Thumbs.db
 
 # IDE
-.vscode-test/
+.vscode/
+.idea/
 *.code-workspace
 .claude/
 
 # Temporary files
 *.tmp
 *.log
+*.swp
+*.swo
+*~
 quick-test*.js
 quick-test*.json
 *-backup-*.json
@@ -28,8 +32,21 @@ quick-test*.json
 # Test files
 *.test.ts
 *.test.js
+*.spec.ts
+*.spec.js
 jest.config.js
 
 # Lock files (using pnpm)
 package-lock.json
 yarn.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

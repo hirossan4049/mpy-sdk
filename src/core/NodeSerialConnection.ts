@@ -101,7 +101,7 @@ export class NodeSerialConnection extends BaseSerialConnection {
   /**
    * Get available serial ports
    */
-  static async listPorts() {
+  static async listPorts(): Promise<any[]> {
     try {
       return await SerialPort.list();
     } catch (error) {
