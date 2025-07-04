@@ -1,7 +1,7 @@
 /**
  * Core Serial Connection Handler
  * 
- * Platform-agnostic serial connection management with M5Stack protocol support
+ * Base serial connection management with M5Stack protocol support for Node.js
  */
 
 import { EventEmitter } from 'events';

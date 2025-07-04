@@ -1,10 +1,8 @@
 {
   "name": "@hirossan4049/mpy-sdk",
   "version": "1.0.0",
-  "description": "MicroPython SDK for M5Stack devices - Universal serial communication library for Node.js, Browser, and React Native",
+  "description": "MicroPython SDK for M5Stack devices - Node.js serial communication library",
   "main": "dist/node/index.js",
-  "browser": "dist/browser/index.js",
-  "react-native": "dist/react-native/index.js",
   "types": "dist/types/index.d.ts",
   "files": [
     "dist/",
@@ -14,16 +12,13 @@
   ],
   "exports": {
     ".": {
-      "node": "./dist/node/index.js",
-      "browser": "./dist/browser/index.js",
-      "react-native": "./dist/react-native/index.js",
+      "require": "./dist/node/index.js",
       "types": "./dist/types/index.d.ts"
     }
   },
   "scripts": {
-    "build": "npm run build:node && npm run build:browser && npm run build:types",
+    "build": "npm run clean && npm run build:node && npm run build:types",
     "build:node": "tsc -p tsconfig.node.json",
-    "build:browser": "webpack --config webpack.browser.js",
     "build:types": "tsc -p tsconfig.types.json",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
@@ -58,14 +53,6 @@
   "engines": {
     "node": ">=14.0.0"
   },
-  "peerDependencies": {
-    "serialport": "^13.0.0"
-  },
-  "peerDependenciesMeta": {
-    "serialport": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
@@ -77,8 +64,7 @@
     "webpack": "^5.0.0",
     "webpack-cli": "^4.0.0"
   },
-  "optionalDependencies": {
+  "dependencies": {
     "serialport": "^13.0.0"
-  },
-  "dependencies": {}
+  }
 }

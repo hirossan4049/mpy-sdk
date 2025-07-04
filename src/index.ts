@@ -1,7 +1,7 @@
 /**
  * @hirossan4049/mpy-sdk
  * 
- * Universal M5Stack serial communication library
+ * Node.js M5Stack serial communication library
  */
 
 // Core exports

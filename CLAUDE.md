@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is the @hirossan4049/mpy-sdk package - a multi-platform SDK for M5Stack MicroPython development. It provides serial communication, file management, and REPL interaction for M5Stack devices across Node.js, Browser, and React Native environments.
+This is the @hirossan4049/mpy-sdk package - a Node.js SDK for M5Stack MicroPython development. It provides serial communication, file management, and REPL interaction for M5Stack devices in Node.js environments.
 
 ## Common Development Commands
 
@@ -19,9 +19,8 @@ pnpm install
 # Build all targets (Node.js, Browser, Types)
 pnpm build
 
-# Build for specific platform
+# Build specific components
 pnpm build:node     # CommonJS for Node.js
-pnpm build:browser  # UMD bundle for browsers
 pnpm build:types    # TypeScript definitions
 
 # Development build (quick Node.js only)
@@ -85,15 +84,13 @@ M5StackClient (main entry point)
 └── FileTransferManager (for file operations)
 ```
 
-### Multi-Platform Architecture
+### Node.js Architecture
 
-The SDK is designed for multiple platforms with a common interface:
+The SDK is built specifically for Node.js environments:
 
-- **Node.js**: Uses `serialport` package (peer dependency)
-- **Browser**: Uses Web Serial API (built with Webpack)
-- **React Native**: Platform-specific adapter (planned)
-
-Each platform implements `BaseSerialConnection` with platform-specific serial port handling.
+- **Serial Communication**: Uses the `serialport` package for hardware communication
+- **Event-driven**: Built on Node.js EventEmitter for asynchronous operations
+- **TypeScript**: Full type safety with comprehensive type definitions
 
 ## Key Design Decisions
 
@@ -142,11 +139,10 @@ Default configuration is defined in `src/types/index.ts`:
 
 ## Build Outputs
 
-The SDK builds to three targets:
+The SDK builds to two targets:
 
 1. **Node.js** (`dist/node/`): CommonJS modules
-2. **Browser** (`dist/browser/`): UMD bundle as `m5stack-sdk.js`
-3. **Types** (`dist/types/`): TypeScript definitions
+2. **Types** (`dist/types/`): TypeScript definitions
 
 ## API Usage Patterns
 
@@ -185,8 +181,8 @@ const result = await adapter.executeCode('print("Hello M5Stack")');
 **Production**: Minimal dependencies for lightweight SDK
 - `ts-loader`: TypeScript compilation for Webpack
 
-**Peer Dependencies**:
-- `serialport` ^13.0.0: Required for Node.js environment only
+**Dependencies**:
+- `serialport` ^13.0.0: Core serial communication library
 
 **Development**: Standard TypeScript toolchain
 - TypeScript, ESLint, Webpack

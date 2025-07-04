@@ -1,17 +1,17 @@
 # @hirossan4049/mpy-sdk
 
-MicroPython SDK for M5Stack devices - Universal serial communication library for Node.js, Browser, and React Native environments.
+MicroPython SDK for M5Stack devices - Node.js serial communication library.
 
 ## Features
 
-- 🔗 **Universal**: Works across Node.js, Browser (Web Serial API), and React Native
+- 🔗 **Node.js**: Built specifically for Node.js environments
 - 🛡️ **Type Safe**: Full TypeScript support with comprehensive type definitions
 - 📁 **File Management**: Upload, download, and manage files on M5Stack devices
 - 🐍 **Python Execution**: Execute Python code and scripts remotely
 - 📊 **Progress Tracking**: Real-time progress updates for file transfers
 - 🔄 **Auto Retry**: Built-in retry logic for reliable communication
 - 🧩 **Dependency Analysis**: Analyze Python imports and dependencies
-- 📱 **Multi-Platform**: Support for various development environments
+- 📱 **Cross-OS**: Works on Windows, macOS, and Linux
 
 ## Installation
 
@@ -19,11 +19,7 @@ MicroPython SDK for M5Stack devices - Universal serial communication library for
 pnpm add @hirossan4049/mpy-sdk
 ```
 
-For Node.js environments, you'll also need the serialport dependency:
-
-```bash
-pnpm add serialport
-```
+The serialport dependency is included automatically.
 
 ## Quick Start
 
