@@ -102,15 +102,15 @@ class M5StackCLI {
   async listPorts(): Promise<void> {
     const client = new M5StackClient();
     const ports = await client.listPorts();
-    const m5Ports = ports.filter(port => 
+    const m5Ports = ports.filter(port =>
       port.path.includes('usbserial') || port.path.includes('COM')
     );
-    
+
     if (m5Ports.length === 0) {
       console.log('No M5Stack devices found');
       return;
     }
-    
+
     m5Ports.forEach(port => {
       console.log(port.path);
     });
@@ -118,16 +118,16 @@ class M5StackCLI {
 
   private async withConnection<T>(port: string, operation: (adapter: REPLAdapter) => Promise<T>): Promise<T> {
     this.adapter = new REPLAdapter(port);
-    
+
     try {
       await this.adapter.connect();
       await this.adapter.initialize();
-      
+
       const result = await operation(this.adapter);
-      
+
       await this.adapter.disconnect();
       this.adapter = null;
-      
+
       return result;
     } catch (error) {
       if (this.adapter) {
@@ -211,7 +211,7 @@ while True:
         console.error(`Local file not found: ${localFile}`);
         process.exit(1);
       }
-      
+
       const content = fs.readFileSync(localFile, 'utf8');
       await adapter.writeFile(devicePath, content);
     });
@@ -250,7 +250,7 @@ while True:
   async restoreWithConnection(port: string): Promise<void> {
     return this.withConnection(port, async (adapter) => {
       const backupFiles = fs.readdirSync('.').filter(f => f.startsWith('m5stack-backup-') && f.endsWith('.json'));
-      
+
       if (backupFiles.length === 0) {
         console.error('No backup files found');
         process.exit(1);
