@@ -4,8 +4,8 @@
  * Provides serial communication support using the Web Serial API.
  */
 
-import { BaseSerialConnection } from './SerialConnection';
 import { CommunicationError, ConnectionOptions, PortInfo } from '../types';
+import { BaseSerialConnection } from './SerialConnection';
 
 // Minimal interfaces for Web Serial types to avoid depending on lib.dom
 export interface WebSerialPort {
@@ -84,7 +84,7 @@ export class WebSerialConnection extends BaseSerialConnection {
     }
   }
 
-  protected async writeRaw(data: Uint8Array): Promise<void> {
+  protected async writeRaw(data: Buffer): Promise<void> {
     if (!this.writer) {
       throw new CommunicationError('Not connected');
     }
@@ -105,7 +105,7 @@ export class WebSerialConnection extends BaseSerialConnection {
         const { value, done } = await this.reader.read();
         if (done) break;
         if (value) {
-          this.onDataReceived(value);
+          this.onDataReceived(Buffer.from(value));
         }
       }
     } catch (error) {
