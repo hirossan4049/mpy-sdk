@@ -49,19 +49,19 @@ pnpm test:watch        # Run tests in watch mode
 pnpm test:coverage     # Run tests with coverage
 
 # Quick connection test
-pnpm quick-test
+pnpm test:quick
 
 # Interactive CLI tools
 pnpm cli               # Interactive CLI with TypeScript
 pnpm cli:tui           # Terminal UI version
 
 # Run examples
-pnpm demo              # REPL adapter example
-pnpm example           # Basic usage example
-pnpm persist           # Firmware persistence example
-pnpm flash-sample      # Flash sample programs
-pnpm flash-simple      # Flash simple program
-pnpm flash-advanced    # Flash advanced program
+pnpm example:repl      # REPL adapter example
+pnpm example:basic     # Basic usage example
+pnpm example:persist   # Firmware persistence example
+pnpm flash:sample      # Flash sample programs
+pnpm flash:simple      # Flash simple program
+pnpm flash:advanced    # Flash advanced program
 ```
 
 ## Architecture Overview
