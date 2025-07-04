@@ -1,0 +1,50 @@
+{
+  "name": "@h1mpy-sdk/cli",
+  "version": "1.0.0",
+  "description": "Command-line interface and TUI tools for M5Stack SDK",
+  "type": "module",
+  "bin": {
+    "m5stack-cli": "./dist/cli.js",
+    "m5stack-tui": "./dist/tui.js"
+  },
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\"",
+    "dev": "tsx src/cli.ts",
+    "tui": "tsx src/tui.tsx",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@h1mpy-sdk/core": "file:../core",
+    "@h1mpy-sdk/node": "file:../node",
+    "commander": "^12.0.0",
+    "ink": "^5.0.1",
+    "ink-select-input": "^6.0.0",
+    "ink-spinner": "^5.0.0",
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "^18.2.0",
+    "eslint": "^8.0.0",
+    "prettier": "^3.2.0",
+    "rimraf": "^5.0.5",
+    "tsx": "^4.0.0",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "m5stack",
+    "micropython",
+    "cli",
+    "tui",
+    "terminal",
+    "interactive"
+  ],
+  "author": "hirossan4049",
+  "license": "MIT"
+}

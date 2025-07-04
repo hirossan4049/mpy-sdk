@@ -12,6 +12,8 @@
     "format:check": "pnpm -r format:check",
     "test": "pnpm -r test",
     "dev": "pnpm -r dev",
+    "cli": "cd packages/cli && pnpm dev",
+    "cli:tui": "cd packages/cli && pnpm tui",
     "example:node": "cd examples/node && pnpm basic",
     "example:web": "cd examples/web && pnpm dev"
   },

@@ -10,6 +10,7 @@ This is a monorepo containing the M5Stack MicroPython SDK with multiple packages
 - `packages/core/` - Shared core logic (adapters, protocol handlers)
 - `packages/node/` - Node.js specific serial implementation
 - `packages/web/` - Web Serial API implementation for browsers
+- `packages/cli/` - Command-line interface and TUI tools
 - `examples/node/` - Node.js usage examples and tests
 - `examples/web/` - Web application examples with Vite
 
@@ -58,6 +59,10 @@ pnpm test:coverage     # Run tests with coverage
 # Run working examples
 pnpm example:node      # Run Node.js basic example
 pnpm example:web       # Start web example server
+
+# CLI and TUI tools
+pnpm cli               # Start command-line interface
+pnpm cli:tui           # Start terminal UI (interactive)
 
 # Node.js examples (in examples/node/)
 node basic-usage.js           # Complete M5Stack operations demo
@@ -208,6 +213,33 @@ The SDK builds to two targets:
 - Jest for testing with ts-jest preset
 - tsx for TypeScript execution
 - ink for terminal UI components
+
+### CLI Package (`packages/cli/`)
+
+**Command Line Interface** (`pnpm cli`):
+- `m5stack-cli list-ports` - List available M5Stack devices
+- `m5stack-cli exec <port> <code>` - Execute Python code on device
+- `m5stack-cli upload <port> <file>` - Upload file to device
+- `m5stack-cli download <port> <remote> [local]` - Download file from device
+- `m5stack-cli ls <port> [path]` - List files on device
+- `m5stack-cli info <port>` - Get device information
+- `m5stack-cli repl <port>` - Start interactive REPL session
+
+**Terminal User Interface** (`pnpm cli:tui`):
+- Interactive menu-driven interface
+- Device selection and connection management
+- Real-time file operations with progress tracking
+- Code execution and output display
+- Device backup and restore functionality
+- M5Stack LCD display control and animation
+
+**Quick Test TUI**:
+- Comprehensive implementation testing
+- Device info parsing validation
+- Relative import resolution testing
+- File upload/download verification
+- CLI connection testing
+- Project dependency analysis
 
 ## Important Development Rules
 
