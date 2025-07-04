@@ -32,7 +32,7 @@ For a simple connection test:
 pnpm install
 
 # Run quick test (builds automatically)
-pnpm quick-test
+pnpm test:quick
 ```
 
 ### Interactive CLI
@@ -52,25 +52,25 @@ pnpm test:watch        # Run tests in watch mode
 pnpm test:coverage     # Run tests with coverage
 
 # Quick connection test - validates basic functionality
-pnpm quick-test
+pnpm test:quick
 
 # Interactive CLI tools
 pnpm cli               # Interactive CLI with TypeScript
 pnpm cli:tui           # Terminal UI version
 
 # REPL adapter example with M5Stack features
-pnpm demo
+pnpm example:repl
 
 # Basic SDK usage example
-pnpm example
+pnpm example:basic
 
 # Firmware persistence example
-pnpm persist
+pnpm example:persist
 
 # Flash sample programs
-pnpm flash-sample      # Flash sample programs
-pnpm flash-simple      # Flash simple program
-pnpm flash-advanced    # Flash advanced program
+pnpm flash:sample      # Flash sample programs
+pnpm flash:simple      # Flash simple program
+pnpm flash:advanced    # Flash advanced program
 ```
 
 ### Basic Usage
@@ -387,7 +387,7 @@ const DEFAULT_CONFIG = {
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-feature`
 3. Make your changes and validate with examples
-4. Test functionality: `pnpm test && pnpm quick-test`
+4. Test functionality: `pnpm test && pnpm test:quick`
 5. Submit a pull request
 
 ## License
