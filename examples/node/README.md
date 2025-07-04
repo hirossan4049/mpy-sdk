@@ -1,315 +1,123 @@
-# M5Stack Node.js Examples
+# Node.js Examples for M5Stack SDK
 
-This directory contains working examples for using the `@h1mpy-sdk/node` package to communicate with M5Stack devices from Node.js applications.
+This directory contains working examples for the M5Stack MicroPython SDK using Node.js.
 
-## Prerequisites
+## Requirements
 
-- Node.js 16+ (CommonJS support)
 - M5Stack device with MicroPython firmware
-- USB cable connection
-- Serial port access permissions
+- Node.js environment
+- Serial connection to M5Stack device
 
-## Quick Start
+## Available Examples
 
-1. **Install dependencies**:
-   ```bash
-   cd examples/node
-   pnpm install
-   ```
+### 🚀 Quick Start
 
-2. **Find your M5Stack port**:
-   - **macOS**: `/dev/tty.usbserial-*`
-   - **Windows**: `COM*` (e.g., COM3, COM4)
-   - **Linux**: `/dev/ttyUSB*` or `/dev/ttyACM*`
+```bash
+# Run the main UI demo
+pnpm example:node
+```
 
-3. **Run working example**:
-   ```bash
-   node working-test.js
-   ```
+### 📚 Examples
 
-## Examples Overview
-
-### 1. Working Test (`working-test.js`) ✅
-**Command**: `node working-test.js`
-
-**Verified working example** with real M5Stack hardware:
-- REPL communication and initialization
-- Basic Python code execution
-- Variable operations and persistence
-- System information retrieval
-- M5Stack LCD control and display
-- Button status reading
-- File operations (create, read, execute)
-- Directory listing
-
-**Features**:
-- ✅ **Hardware tested** on M5Stack device
-- ✅ REPL mode communication
-- ✅ LCD control verification
-- ✅ Complete error handling
-- ✅ Real device compatibility
-
----
-
-### 2. Basic Connection Test (`basic-connection-test.js`)
-**Command**: `node basic-connection-test.js`
-
-**Simple debugging test** for troubleshooting:
-- Basic serial connection
-- REPL initialization
-- Simple command execution
-- Minimal error handling
-- Connection state testing
-
-**Use this for**:
-- 🔧 Debugging connection issues
-- 🔍 Testing device responsiveness
-- ⚡ Quick connection verification
-- 🐛 Troubleshooting timeouts
-
----
-
-### 3. Simple REPL Test (`simple-repl-test.js`)
-**Command**: `node simple-repl-test.js`
-
-**Basic REPL functionality test**:
-- Python code execution
-- Math calculations
-- System information
-- M5Stack feature testing
+#### 1. `basic-usage.js` - Basic Operations
+Demonstrates fundamental M5Stack operations:
+- Connecting to device via Raw REPL
+- Executing Python code
+- LCD display control
+- File operations
 - Device information retrieval
 
----
-
-### 4. REPL Interactive (`repl-example.js`) 
-**Command**: `node repl-example.js [port_path]`
-
-Shows advanced REPL (Read-Eval-Print Loop) usage:
-- Interactive MicroPython development
-- Multi-line code execution
-- Variable persistence between commands
-- M5Stack hardware testing
-- Real-time sensor monitoring
-
-**Features**:
-- 🐍 Interactive Python execution
-- 📊 Live sensor data
-- 🎵 Sound and melody playback
-- 🖥️ LCD display control
-- 🔘 Button interaction monitoring
-
-**Usage**:
 ```bash
-# macOS/Linux
-pnpm repl /dev/tty.usbserial-YOUR_PORT
-
-# Windows
-pnpm repl COM3
+node basic-usage.js
 ```
 
----
-
-### 3. File Operations (`file-operations.js`)
-**Command**: `pnpm file-ops`
-
-Comprehensive file management demonstration:
-- Bulk file uploads with progress tracking
-- Directory listing and navigation
-- JSON configuration files
-- Python application deployment
-- File verification and integrity checks
-
-**Features**:
-- 📁 Complete file system management
-- 📊 Upload progress tracking
-- 🔧 System utility scripts
-- ⚙️ Configuration management
-- 🚀 Application deployment
-
----
-
-### 4. Interactive Demo (`interactive-demo.js`)
-**Command**: `pnpm interactive`
-
-Real-time interactive features:
-- Button monitoring and response
-- Sensor data streaming
-- Sound and display effects
-- Simple reaction time game
-- Command-line interface
-
-**Interactive Commands**:
-- `monitor` - Real-time device monitoring
-- `buttons` - Button press detection
-- `sensors` - Live sensor data streaming
-- `sound` - Audio testing and melodies
-- `display` - LCD animation demos
-- `game` - Reaction time game
-- `quit` - Exit demo
-
-**Features**:
-- 🎮 Interactive command interface
-- 📊 Real-time data streaming
-- 🎵 Audio feedback and melodies
-- 🖥️ Dynamic display updates
-- ⏱️ Performance measurement
-
----
-
-### 5. Flash Firmware (`flash-firmware.js`)
-**Command**: `pnpm flash-firmware`
-
-Complete firmware deployment system:
-- Boot script creation (`boot.py`)
-- Main application deployment (`main.py`)
-- Library file installation
-- Configuration file setup
-- Persistent application framework
-
-**Firmware Components**:
-- 🚀 **boot.py**: System initialization and hardware setup
-- 📱 **main.py**: Full-featured application with UI
-- 📚 **utils.py**: Utility library with common functions
-- ⚙️ **Config files**: JSON-based configuration system
-
-**Application Features**:
-- Multi-theme UI system
-- Boot counter tracking
-- Memory monitoring
-- Button interaction handling
-- Settings persistence
-- Event logging system
-
----
-
-## Advanced Usage
-
-### Custom Port Selection
-
-Most examples auto-detect the first available port, but you can specify a port:
+#### 2. `raw-repl-ui-test.js` - Complete UI Demo ✅
+Comprehensive UI demonstration including:
+- Colorful LCD graphics
+- Animated elements
+- Button interaction
+- Status displays
+- Multiple UI screens
 
 ```bash
-# Run REPL example with specific port
-node repl-example.js /dev/tty.usbserial-A50285BI
-
-# Run interactive demo with specific port  
-node interactive-demo.js COM4
+node raw-repl-ui-test.js
 ```
+
+**Features**:
+- ✅ **Hardware tested** with real M5Stack device
+- ✅ Raw REPL mode for reliable communication
+- ✅ Complete UI demonstration
+- ✅ Animation and interaction support
+- ✅ Real device compatibility verified
+
+## Technical Notes
+
+### Raw REPL Mode
+
+All examples use MicroPython's Raw REPL mode for reliable communication:
+
+1. **Ctrl+C** - Interrupt any running program
+2. **Ctrl+A** - Enter Raw REPL mode
+3. **Code + Ctrl+D** - Execute code
+4. **Ctrl+B** - Exit Raw REPL mode
+
+### Device Connection
+
+Examples are configured for: `/dev/tty.usbserial-55520ADC16`
+
+To use with your device, update the `portPath` variable in each example.
 
 ### Error Handling
 
-All examples include comprehensive error handling:
-- Connection timeouts
-- Device communication errors
-- File operation failures
-- Graceful cleanup and disconnection
+All examples include comprehensive error handling and automatic cleanup of connections.
 
-### Development Tips
+## Device Requirements
 
-1. **Serial Port Permissions** (Linux/macOS):
-   ```bash
-   sudo usermod -a -G dialout $USER
-   # Logout and login again
-   ```
-
-2. **Port Discovery**:
-   ```bash
-   # List available ports
-   ls /dev/tty.usb*           # macOS
-   ls /dev/ttyUSB* /dev/ttyACM*  # Linux
-   # Use Device Manager on Windows
-   ```
-
-3. **Debugging**:
-   ```bash
-   # Enable debug logging
-   export DEBUG=1
-   pnpm basic
-   ```
+- **M5StickC-Plus** or compatible M5Stack device
+- **MicroPython firmware** (tested with version 1.12.0)
+- **USB serial connection** (typically FTDI-based)
 
 ## Troubleshooting
 
-### Common Issues
+### No Response from Device
+1. Verify MicroPython firmware is installed
+2. Check serial port path
+3. Ensure no other software is using the port
+4. Try physical reset of the device
 
-1. **Port Permission Denied**:
-   - Add user to dialout group (Linux)
-   - Check cable connection
-   - Ensure no other applications are using the port
+### Import Errors
+1. Confirm M5Stack-specific MicroPython build
+2. Check that `m5stack` module is available
+3. Verify device model compatibility
 
-2. **Device Not Responding**:
-   - Verify MicroPython firmware is installed
-   - Try pressing the reset button on M5Stack
-   - Check baud rate (should be 115200)
+## Development
 
-3. **Import Errors**:
-   - Ensure you're in the examples/node directory
-   - Run `pnpm install` to install dependencies
-   - Check Node.js version (18+ required)
-
-4. **Timeout Errors**:
-   - Increase timeout in client options
-   - Check device is powered and not frozen
-   - Verify USB cable quality
-
-### Debug Mode
-
-Enable detailed logging:
-
-```javascript
-const client = new M5StackClient({
-  logLevel: 'debug',
-  timeout: 15000
-});
-```
+These examples demonstrate the working Raw REPL approach after extensive testing and debugging. They provide a solid foundation for building more complex M5Stack applications.
 
 ## Example Output
 
-### Basic Usage Example
+### Raw REPL UI Test
 ```
-🚀 M5Stack Node.js Basic Usage Example
+🎮 Raw REPL UI Test - M5Stackに確実にUIを表示
 
-🔍 Scanning for serial ports...
-📡 Available ports:
-  1. /dev/tty.usbserial-A50285BI
+🔌 Connecting to M5Stack...
+✅ Connected successfully
+🔄 Initializing Raw REPL...
+   Entering raw REPL mode...
+   Raw REPL response: "raw REPL; CTRL-B to exit>"
+✅ Raw REPL mode activated
 
-🔌 Connecting to /dev/tty.usbserial-A50285BI...
-✅ Connected successfully!
+1️⃣ Simple LCD Display Test...
+📤 Executing in raw REPL: LCD code...
+📥 Execution result: "Simple LCD test completed >OK"
 
-🏥 Checking device status...
-Device online: ✅
+2️⃣ Colorful Rectangle UI Test...
+📥 Execution result: "Colorful UI created >OK"
 
-📋 Device Information:
-  Platform: esp32
-  Version: 1.4.2
-  Chip ID: M5Stack
-  Flash Size: 16777216 bytes
-  RAM Size: 524288 bytes
+3️⃣ Animation Test...
+📥 Execution result: "Animation completed >OK"
 
-🐍 Executing Python code...
-  Output: Hello from M5Stack via Node.js!
-  Execution time: 234ms
-  Exit code: 0
-
-📁 Files on device (/flash):
-  📄 boot.py
-  📄 main.py
-
-🎉 Basic usage example completed successfully!
+🎉 Raw REPL UI Test Completed Successfully!
+📺 Check your M5Stack display for all the UI elements!
+✅ Node.js ↔ M5Stack communication via Raw REPL is working!
 ```
-
-## Contributing
-
-To add new examples:
-
-1. Create a new `.js` file following the naming pattern
-2. Add a script entry in `package.json`
-3. Follow the existing error handling patterns
-4. Include comprehensive documentation
-5. Test with actual M5Stack hardware
-
-## Related Documentation
-
-- [M5Stack Documentation](https://docs.m5stack.com/)
-- [MicroPython Guide](https://micropython.org/)
-- [@h1mpy-sdk/node API Reference](../../packages/node/README.md)
-- [Serial Communication Protocol](../../packages/core/README.md)
