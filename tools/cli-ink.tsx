@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env tsx
 import React, { useState, useEffect } from 'react';
 import { render, Text, Box, useInput, useApp } from 'ink';
 import SelectInput from 'ink-select-input';
@@ -220,46 +220,59 @@ while True:
     }
   });
 
-  return React.createElement(Box, { flexDirection: "column" },
-    React.createElement(Box, { marginBottom: 1 },
-      React.createElement(Text, { bold: true, color: "cyan" }, "🔧 M5Stack SDK CLI")
-    ),
+  return (
+    <Box flexDirection="column">
+      <Box marginBottom={1}>
+        <Text bold color="cyan">🔧 M5Stack SDK CLI</Text>
+      </Box>
 
-    message && React.createElement(Box, { marginBottom: 1 },
-      React.createElement(Text, { color: "yellow" }, message)
-    ),
+      {message && (
+        <Box marginBottom={1}>
+          <Text color="yellow">{message}</Text>
+        </Box>
+      )}
 
-    loading && React.createElement(Box, { marginBottom: 1 },
-      React.createElement(Text, { color: "green" },
-        React.createElement(Spinner, { type: "dots" }), " Loading..."
-      )
-    ),
+      {loading && (
+        <Box marginBottom={1}>
+          <Text color="green">
+            <Spinner type="dots" /> Loading...
+          </Text>
+        </Box>
+      )}
 
-    screen === 'menu' && !loading && 
-      React.createElement(SelectInput, { items: mainMenuItems, onSelect: handleMainMenu }),
+      {screen === 'menu' && !loading && (
+        <SelectInput items={mainMenuItems} onSelect={handleMainMenu} />
+      )}
 
-    screen === 'ports' && !loading && React.createElement(Box, { flexDirection: "column" },
-      React.createElement(Box, { marginBottom: 1 },
-        React.createElement(Text, null, "Select a device:")
-      ),
-      React.createElement(SelectInput, { items: ports, onSelect: handlePortSelect })
-    ),
+      {screen === 'ports' && !loading && (
+        <Box flexDirection="column">
+          <Box marginBottom={1}>
+            <Text>Select a device:</Text>
+          </Box>
+          <SelectInput items={ports} onSelect={handlePortSelect} />
+        </Box>
+      )}
 
-    screen === 'connected' && !loading && React.createElement(Box, { flexDirection: "column" },
-      React.createElement(Box, { marginBottom: 1 },
-        React.createElement(Text, { color: "green" }, `✅ Connected to ${selectedPort}`)
-      ),
-      React.createElement(SelectInput, { items: connectedMenuItems, onSelect: handleConnectedMenu })
-    ),
+      {screen === 'connected' && !loading && (
+        <Box flexDirection="column">
+          <Box marginBottom={1}>
+            <Text color="green">✅ Connected to {selectedPort}</Text>
+          </Box>
+          <SelectInput items={connectedMenuItems} onSelect={handleConnectedMenu} />
+        </Box>
+      )}
 
-    commandResult && React.createElement(Box, { marginTop: 1, borderStyle: "single", paddingX: 1 },
-      React.createElement(Text, null, commandResult)
-    ),
+      {commandResult && (
+        <Box marginTop={1} borderStyle="single" paddingX={1}>
+          <Text>{commandResult}</Text>
+        </Box>
+      )}
 
-    React.createElement(Box, { marginTop: 1 },
-      React.createElement(Text, { dimColor: true }, "Press 'q' to quit")
-    )
+      <Box marginTop={1}>
+        <Text dimColor>Press 'q' to quit</Text>
+      </Box>
+    </Box>
   );
 };
 
-render(React.createElement(CLI));
+render(<CLI />);
