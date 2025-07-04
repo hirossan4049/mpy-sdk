@@ -1,5 +1,5 @@
 /**
- * @hirossan4049/mpy-sdk
+ * @h1mpy-sdk
  *
  * Node.js M5Stack serial communication library
  */

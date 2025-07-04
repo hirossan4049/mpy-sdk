@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This is the @hirossan4049/mpy-sdk package - a Node.js SDK for M5Stack MicroPython development. It provides serial communication, file management, and REPL interaction for M5Stack devices in Node.js environments.
+This project now exposes multiple packages under the `@h1mpy-sdk` scope. The Node.js SDK and Web Serial implementation share common logic from the core package.
 
 ## Common Development Commands
 

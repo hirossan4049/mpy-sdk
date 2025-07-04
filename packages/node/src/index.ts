@@ -1,39 +1,25 @@
 /**
- * @h1mpy-sdk
+ * @h1mpy-sdk/node
  *
- * Browser M5Stack serial communication library
+ * Node.js M5Stack serial communication library
  */
 
-// Core exports
-export { WebSerialConnection } from './core/WebSerialConnection';
-export { ProtocolHandler } from './core/ProtocolHandler';
-export { BaseSerialConnection } from './core/SerialConnection';
-
-// Adapter exports
-export { REPLAdapter } from './adapters/REPLAdapter';
-
-// Manager exports
-export { DeviceManager } from './manager/DeviceManager';
-
-// Utility exports
-export { FileTransferManager } from './utils/FileTransfer';
-export { PythonAnalyzer } from './utils/PythonAnalyzer';
-
-// Type exports
-export * from './types';
+// Package exports
+export { NodeSerialConnection } from './NodeSerialConnection';
+export * from '@h1mpy-sdk/core';
 
 // Main client class
 import { EventEmitter } from 'events';
-import { WebSerialConnection, WebSerialPort } from './core/WebSerialConnection';
-import { DeviceManager } from './manager/DeviceManager';
+import { NodeSerialConnection } from './NodeSerialConnection';
 import {
+  DeviceManager,
   ClientOptions,
   CommunicationError,
   DEFAULT_CONFIG,
   ILogger,
   LogLevel,
   PortInfo,
-} from './types';
+} from '@h1mpy-sdk/core';
 
 /**
  * Simple console logger implementation
@@ -77,7 +63,7 @@ class ConsoleLogger implements ILogger {
 export class Connection extends DeviceManager {
   readonly port: string;
 
-  constructor(connection: WebSerialConnection) {
+  constructor(connection: NodeSerialConnection) {
     super(connection);
     this.port = connection.portName;
   }
@@ -97,7 +83,7 @@ export class Connection extends DeviceManager {
 export class M5StackClient extends EventEmitter {
   private options: Required<ClientOptions>;
   private logger: ILogger;
-  private connections: Map<WebSerialPort, Connection> = new Map();
+  private connections: Map<string, Connection> = new Map();
 
   constructor(options: ClientOptions = {}) {
     super();
@@ -120,7 +106,7 @@ export class M5StackClient extends EventEmitter {
   async listPorts(): Promise<PortInfo[]> {
     try {
       this.logger.debug('Listing available ports');
-      return (await WebSerialConnection.listPorts()) as PortInfo[];
+      return (await NodeSerialConnection.listPorts()) as PortInfo[];
     } catch (error) {
       this.logger.error('Failed to list ports:', error);
       throw new CommunicationError(`Failed to list ports: ${error}`);
@@ -130,21 +116,21 @@ export class M5StackClient extends EventEmitter {
   /**
    * Connect to a device
    */
-  async connect(port: WebSerialPort): Promise<Connection> {
+  async connect(port: string): Promise<Connection> {
     if (this.connections.has(port)) {
       const existing = this.connections.get(port)!;
       if (existing.isConnected) {
-        this.logger.warn('Already connected to port');
+        this.logger.warn(`Already connected to ${port}`);
         return existing;
       }
       // Remove disconnected connection
       this.connections.delete(port);
     }
 
-    this.logger.info('Connecting to port');
+    this.logger.info(`Connecting to ${port}`);
 
     try {
-      const serialConnection = new WebSerialConnection(port, {
+      const serialConnection = new NodeSerialConnection(port, {
         baudRate: this.options.baudRate,
         timeout: this.options.timeout,
         autoReconnect: this.options.autoReconnect,
@@ -154,18 +140,18 @@ export class M5StackClient extends EventEmitter {
 
       // Forward events
       connection.on('connect', () => {
-        this.logger.info('Connected to port');
+        this.logger.info(`Connected to ${port}`);
         this.emit('connect', port);
       });
 
       connection.on('disconnect', () => {
-        this.logger.info('Disconnected from port');
+        this.logger.info(`Disconnected from ${port}`);
         this.connections.delete(port);
         this.emit('disconnect', port);
       });
 
       connection.on('error', (error) => {
-        this.logger.error('Connection error:', error);
+        this.logger.error(`Connection error on ${port}:`, error);
         this.emit('error', port, error);
       });
 
@@ -174,29 +160,29 @@ export class M5StackClient extends EventEmitter {
 
       return connection;
     } catch (error) {
-      this.logger.error('Failed to connect to port:', error);
-      throw new CommunicationError(`Failed to connect: ${error}`);
+      this.logger.error(`Failed to connect to ${port}:`, error);
+      throw new CommunicationError(`Failed to connect to ${port}: ${error}`);
     }
   }
 
   /**
    * Disconnect from a device
    */
-  async disconnect(port: WebSerialPort): Promise<void> {
+  async disconnect(port: string): Promise<void> {
     const connection = this.connections.get(port);
     if (!connection) {
-      this.logger.warn('No connection found for port');
+      this.logger.warn(`No connection found for ${port}`);
       return;
     }
 
-    this.logger.info('Disconnecting from port');
+    this.logger.info(`Disconnecting from ${port}`);
 
     try {
       await connection.disconnect();
       this.connections.delete(port);
     } catch (error) {
-      this.logger.error('Failed to disconnect from port:', error);
-      throw new CommunicationError(`Failed to disconnect: ${error}`);
+      this.logger.error(`Failed to disconnect from ${port}:`, error);
+      throw new CommunicationError(`Failed to disconnect from ${port}: ${error}`);
     }
   }
 
@@ -212,7 +198,7 @@ export class M5StackClient extends EventEmitter {
   /**
    * Get connection for a port
    */
-  getConnection(port: WebSerialPort): Connection | null {
+  getConnection(port: string): Connection | null {
     return this.connections.get(port) || null;
   }
 
@@ -258,15 +244,15 @@ export class M5StackClient extends EventEmitter {
   /**
    * Health check - ping all connected devices
    */
-  async healthCheck(): Promise<Map<WebSerialPort, boolean>> {
-    const results = new Map<WebSerialPort, boolean>();
+  async healthCheck(): Promise<{ [port: string]: boolean }> {
+    const results: { [port: string]: boolean } = {};
 
     for (const [port, connection] of this.connections) {
       try {
-        results.set(port, await connection.isOnline());
+        results[port] = await connection.isOnline();
       } catch (error) {
-        this.logger.warn('Health check failed:', error);
-        results.set(port, false);
+        this.logger.warn(`Health check failed for ${port}:`, error);
+        results[port] = false;
       }
     }
 

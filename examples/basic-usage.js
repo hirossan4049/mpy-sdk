@@ -1,8 +1,8 @@
 /**
- * Basic usage example for @hirossan4049/mpy-sdk
+ * Basic usage example for @h1mpy-sdk/node
  */
 
-const { M5StackClient } = require('../dist/node/index');
+const { M5StackClient } = require('@h1mpy-sdk/node');
 
 async function basicExample() {
   // Create client with options
@@ -60,7 +60,7 @@ async function basicExample() {
     // Create a simple Python file
     console.log('Creating test file...');
     const pythonCode = `
-# Test file created by @hirossan4049/mpy-sdk
+# Test file created by @h1mpy-sdk/node
 import time
 print("Test file executed!")
 print("Current time:", time.time())

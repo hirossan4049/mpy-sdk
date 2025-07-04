@@ -1,4 +1,4 @@
-# @hirossan4049/mpy-sdk
+# @h1mpy-sdk
 
 MicroPython SDK for M5Stack devices - Node.js serial communication library.
 
@@ -17,10 +17,19 @@ MicroPython SDK for M5Stack devices - Node.js serial communication library.
 ## Installation
 
 ```bash
-pnpm add @hirossan4049/mpy-sdk
+npm i @h1mpy-sdk/node   # Node.js environments
+npm i @h1mpy-sdk/web    # Browser apps via Web Serial
 ```
 
-The serialport dependency is included automatically.
+The `serialport` dependency is included automatically when using the Node package.
+
+### Packages
+
+The project is organised as a small monorepo:
+
+- `@h1mpy-sdk/core` – common logic and utilities
+- `@h1mpy-sdk/node` – Node.js serial implementation
+- `@h1mpy-sdk/web` – browser/Web Serial support
 
 ## Quick Start
 
@@ -76,7 +85,7 @@ pnpm flash:advanced    # Flash advanced program
 ### Basic Usage
 
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk';
+import { M5StackClient } from '@h1mpy-sdk/node';
 
 const client = new M5StackClient({
   timeout: 10000,
@@ -121,7 +130,7 @@ await connection.writeFile('/flash/script.py', fileContent, {
 ### Python Dependency Analysis
 
 ```typescript
-import { PythonAnalyzer } from '@hirossan4049/mpy-sdk';
+import { PythonAnalyzer } from '@h1mpy-sdk/node';
 
 const analyzer = new PythonAnalyzer();
 const code = `
@@ -242,14 +251,14 @@ interface ExecutionResult {
 ### Node.js
 
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk';
+import { M5StackClient } from '@h1mpy-sdk/node';
 // Uses 'serialport' package automatically
 ```
 
 ### Browser (Web Serial API)
 
 ```typescript
-import { M5StackClient, WebSerialConnection } from '@hirossan4049/mpy-sdk/browser';
+import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
 
 const port = await WebSerialConnection.requestPort();
 const client = new M5StackClient();
@@ -259,7 +268,7 @@ const connection = await client.connect(port);
 ### React Native
 
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk/react-native';
+import { M5StackClient } from '@h1mpy-sdk/react-native';
 // Uses react-native-serial
 ```
 
@@ -268,7 +277,7 @@ import { M5StackClient } from '@hirossan4049/mpy-sdk/react-native';
 ### Custom Protocol Handler
 
 ```typescript
-import { ProtocolHandler } from '@hirossan4049/mpy-sdk';
+import { ProtocolHandler } from '@h1mpy-sdk/node';
 
 const protocol = new ProtocolHandler();
 const frame = protocol.createFrame(commandBuffer);
@@ -277,7 +286,7 @@ const frame = protocol.createFrame(commandBuffer);
 ### File Transfer Management
 
 ```typescript
-import { FileTransferManager } from '@hirossan4049/mpy-sdk';
+import { FileTransferManager } from '@h1mpy-sdk/node';
 
 const transferManager = new FileTransferManager(connection);
 await transferManager.uploadFile(filename, content, true, {
@@ -290,7 +299,7 @@ await transferManager.uploadFile(filename, content, true, {
 ### Python Code Analysis
 
 ```typescript
-import { PythonAnalyzer } from '@hirossan4049/mpy-sdk';
+import { PythonAnalyzer } from '@h1mpy-sdk/node';
 
 const analyzer = new PythonAnalyzer();
 const analysis = await analyzer.analyzeProject('main.py', codeContent);
@@ -349,7 +358,7 @@ import {
   TimeoutError, 
   DeviceBusyError, 
   FileNotFoundError 
-} from '@hirossan4049/mpy-sdk';
+} from '@h1mpy-sdk/node';
 
 try {
   await connection.executeCode('print("hello")');

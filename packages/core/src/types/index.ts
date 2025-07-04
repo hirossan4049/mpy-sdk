@@ -1,5 +1,5 @@
 /**
- * @h1mpy-sdk Type Definitions
+ * @h1mpy-sdk/core Type Definitions
  *
  * Comprehensive type definitions for M5Stack serial communication
  */

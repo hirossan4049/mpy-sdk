@@ -1,39 +1,25 @@
 /**
- * @h1mpy-sdk
+ * @h1mpy-sdk/web
  *
  * Browser M5Stack serial communication library
  */
 
 // Core exports
-export { WebSerialConnection } from './core/WebSerialConnection';
-export { ProtocolHandler } from './core/ProtocolHandler';
-export { BaseSerialConnection } from './core/SerialConnection';
-
-// Adapter exports
-export { REPLAdapter } from './adapters/REPLAdapter';
-
-// Manager exports
-export { DeviceManager } from './manager/DeviceManager';
-
-// Utility exports
-export { FileTransferManager } from './utils/FileTransfer';
-export { PythonAnalyzer } from './utils/PythonAnalyzer';
-
-// Type exports
-export * from './types';
+export { WebSerialConnection } from './WebSerialConnection';
+export * from '@h1mpy-sdk/core';
 
 // Main client class
 import { EventEmitter } from 'events';
-import { WebSerialConnection, WebSerialPort } from './core/WebSerialConnection';
-import { DeviceManager } from './manager/DeviceManager';
+import { WebSerialConnection, WebSerialPort } from './WebSerialConnection';
 import {
+  DeviceManager,
   ClientOptions,
   CommunicationError,
   DEFAULT_CONFIG,
   ILogger,
   LogLevel,
   PortInfo,
-} from './types';
+} from '@h1mpy-sdk/core';
 
 /**
  * Simple console logger implementation
