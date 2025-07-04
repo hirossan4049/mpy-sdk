@@ -2,6 +2,7 @@
   "name": "@hirossan4049/mpy-sdk",
   "version": "1.0.0",
   "description": "MicroPython SDK for M5Stack devices - Node.js serial communication library",
+  "type": "module",
   "main": "dist/node/index.js",
   "types": "dist/types/index.d.ts",
   "files": [
@@ -12,7 +13,7 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/node/index.js",
+      "import": "./dist/node/index.js",
       "types": "./dist/types/index.d.ts"
     }
   },
@@ -26,11 +27,11 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rimraf dist",
     "dev": "pnpm build:node",
-    "quick-test": "pnpm build:node && node tools/quick-test-ink.mjs",
+    "quick-test": "pnpm build:node && tsx tools/quick-test-ink.tsx",
     "quick-test:legacy": "pnpm build:node && node tools/quick-test.js",
     "demo": "pnpm build:node && node examples/repl-adapter-example.js",
     "example": "pnpm build:node && node examples/basic-usage.js",
-    "cli": "pnpm build:node && node tools/cli-ink.mjs",
+    "cli": "node --import tsx/esm --no-warnings tools/cli-ink.tsx",
     "cli:legacy": "pnpm build:node && node tools/cli.js",
     "persist": "pnpm build:node && node examples/firmware-persistence.js",
     "prepublishOnly": "pnpm clean && pnpm build && pnpm quick-test"
@@ -72,6 +73,7 @@
     "ink-spinner": "^5.0.0",
     "prettier": "^3.2.0",
     "react": "^19.1.0",
+    "tsx": "^4.7.0",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.3"
   },

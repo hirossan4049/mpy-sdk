@@ -1,10 +1,9 @@
-#!/usr/bin/env node
-import React from 'react';
-import { useState, useEffect } from 'react';
-import { render, Text, Box, useApp } from 'ink';
+#!/usr/bin/env tsx
+import { Box, render, Text, useApp } from 'ink';
 import SelectInput from 'ink-select-input';
 import Spinner from 'ink-spinner';
 import { createRequire } from 'module';
+import React, { useEffect, useState } from 'react';
 
 const require = createRequire(import.meta.url);
 const { M5StackClient } = require('../dist/node/index.js');
@@ -33,14 +32,14 @@ const QuickTest = () => {
           label: `${port.path} - ${port.manufacturer || 'Unknown'}`,
           value: port.path
         }));
-      
+
       if (portItems.length === 0) {
         portItems.push({ label: '❌ No M5Stack devices found', value: null });
       }
-      
+
       portItems.push({ label: '🔄 Refresh ports', value: 'refresh' });
       portItems.push({ label: '❌ Exit', value: 'exit' });
-      
+
       setPorts(portItems);
     } catch (error) {
       setError(`Error loading ports: ${error.message}`);
@@ -55,9 +54,9 @@ const QuickTest = () => {
   const runTests = async (port) => {
     setPhase('testing');
     setResults([]);
-    
+
     let adapter = null;
-    
+
     try {
       // Test 1: Connection
       addResult('📡', 'Connecting to device...');
@@ -107,7 +106,7 @@ print("Free memory:", gc.mem_free(), "bytes")
 from m5stack import *
 from m5ui import *
 setScreenColor(0x111111)
-title = M5TextBox(10, 10, "Quick Test", lcd.FONT_Default, 0x00FF00, rotate=0)
+title = M5TextBox(10, 10, "Quick Test unko!!!", lcd.FONT_Default, 0x00FF00, rotate=0)
 `);
         addResult('✅', 'M5Stack display initialized');
       } catch (error) {
@@ -141,7 +140,7 @@ while True:
       addResult('✅', 'Persistent app saved to main.py');
 
       addResult('🎉', 'All tests completed successfully!');
-      
+
     } catch (error) {
       addResult('❌', `Error: ${error.message}`, false);
     } finally {
@@ -203,7 +202,7 @@ while True:
               </Text>
             </Box>
           ))}
-          
+
           {phase === 'complete' && (
             <Box marginTop={1}>
               <Text dimColor>Press Ctrl+C to exit</Text>
