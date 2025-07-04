@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useState, useEffect } from 'react';
 import { render, Text, Box, useApp } from 'ink';
 import SelectInput from 'ink-select-input';
 import Spinner from 'ink-spinner';
