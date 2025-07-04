@@ -327,22 +327,21 @@ export class REPLAdapter extends EventEmitter {
 
   async readFile(path: string): Promise<Buffer> {
     try {
-      // Read file content using MicroPython
-      const command = `
-with open('${path}', 'rb') as f:
-    import binascii
-    print(binascii.hexlify(f.read()).decode())
-`;
+      // Read file content using sequential commands for better reliability
+      await this.sendREPLCommand('import binascii');
+      await this.sendREPLCommand(`f = open('${path}', 'rb')`);
+      const hexResult = await this.sendREPLCommand('binascii.hexlify(f.read()).decode()');
+      await this.sendREPLCommand('f.close()');
 
-      const result = await this.executeCode(command);
-      // Extract the hex content from the output (last line usually)
-      const lines = result.output.trim().split('\n');
-      const hexContent = lines[lines.length - 1].trim();
+      // Extract the hex content from the result (last line)
+      const lines = hexResult.trim().split('\n');
+      const hexContent = lines[lines.length - 1].replace(/'/g, '').trim();
 
-      if (!hexContent || hexContent === 'None' || hexContent.startsWith('exec(')) {
+      if (!hexContent || hexContent === 'None') {
         throw new Error('File not found or empty');
       }
 
+      // Convert hex string back to Buffer
       return Buffer.from(hexContent, 'hex');
     } catch (error) {
       throw new FileNotFoundError(path, error);
@@ -366,28 +365,23 @@ with open('${path}', 'rb') as f:
         for (let i = 0; i < hexData.length; i += maxHexSize) {
           const chunk = hexData.slice(i, i + maxHexSize);
           const mode = i === 0 ? 'wb' : 'ab'; // First chunk creates file, others append
-          const chunkCommand = `
-import binascii
-with open('${path}', '${mode}') as f:
-    f.write(binascii.unhexlify('${chunk}'))
-print('Chunk written')
-`;
-          await this.executeCode(chunkCommand);
+          
+          // Write using sequential commands for better reliability
+          await this.sendREPLCommand('import binascii');
+          await this.sendREPLCommand(`f = open('${path}', '${mode}')`);
+          await this.sendREPLCommand(`f.write(binascii.unhexlify('${chunk}'))`);
+          await this.sendREPLCommand('f.close()');
 
           if (options.onProgress) {
             options.onProgress(Math.min(i + maxHexSize, hexData.length) / 2, data.length);
           }
         }
       } else {
-        // Write file using MicroPython for small files
-        const command = `
-import binascii
-with open('${path}', 'wb') as f:
-    f.write(binascii.unhexlify('${hexData}'))
-print('File written successfully')
-`;
-
-        await this.executeCode(command);
+        // Write file using sequential commands for small files
+        await this.sendREPLCommand('import binascii');
+        await this.sendREPLCommand(`f = open('${path}', 'wb')`);
+        await this.sendREPLCommand(`f.write(binascii.unhexlify('${hexData}'))`);
+        await this.sendREPLCommand('f.close()');
 
         if (options.onProgress) {
           options.onProgress(data.length, data.length);
