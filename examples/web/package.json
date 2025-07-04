@@ -1,0 +1,20 @@
+{
+  "name": "mpy-sdk-web-example",
+  "version": "1.0.0",
+  "description": "Web example for @hirossan4049/mpy-sdk using Web Serial API",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --open",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hirossan4049/mpy-sdk": "file:../.."
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": ["m5stack", "micropython", "web-serial", "browser"],
+  "author": "hirossan4049",
+  "license": "MIT"
+}

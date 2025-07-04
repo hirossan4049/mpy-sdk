@@ -26,7 +26,7 @@ export class WebSerialConnection extends BaseSerialConnection {
   }
 
   static isSupported(): boolean {
-    const nav = (globalThis as { navigator?: Record<string, unknown> }).navigator;
+    const nav = (globalThis as unknown as { navigator?: any }).navigator;
     return typeof nav !== 'undefined' && 'serial' in nav;
   }
 

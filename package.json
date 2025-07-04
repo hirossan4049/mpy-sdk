@@ -14,11 +14,16 @@
     ".": {
       "import": "./dist/node/index.js",
       "types": "./dist/types/index.d.ts"
+    },
+    "./browser": {
+      "import": "./dist/browser/index.js",
+      "types": "./dist/types/index.d.ts"
     }
   },
   "scripts": {
-    "build": "pnpm clean && pnpm build:node && pnpm build:types",
+    "build": "pnpm clean && pnpm build:node && pnpm build:browser && pnpm build:types",
     "build:node": "tsc -p tsconfig.node.json",
+    "build:browser": "tsc -p tsconfig.browser.json",
     "build:types": "tsc -p tsconfig.types.json",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
