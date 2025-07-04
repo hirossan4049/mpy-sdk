@@ -1,13 +1,14 @@
 # @h1mpy-sdk
 
-Cross-platform MicroPython SDK for M5Stack devices with Node.js and Web Serial support.
+Cross-platform MicroPython SDK for M5Stack devices with Node.js, Web Serial, and CLI support.
 
 ## Features
 
-- 🔗 **Dual Platform**: Node.js and Browser (Web Serial) support
+- 🔗 **Multi-Platform**: Node.js, Browser (Web Serial), and CLI support
 - 🛡️ **Type Safe**: Full TypeScript support with comprehensive type definitions
 - 📁 **File Management**: Upload, download, and manage files on M5Stack devices
 - 🐍 **REPL & Protocol Modes**: Interactive REPL and binary protocol communication
+- 🖥️ **CLI & TUI Tools**: Command-line interface and interactive terminal UI
 - 📊 **Progress Tracking**: Real-time progress updates for file transfers
 - 🔄 **Auto Retry**: Built-in retry logic for reliable communication
 - 🌐 **Web Serial Ready**: Browser support via Chrome's Web Serial API
@@ -20,21 +21,23 @@ Cross-platform MicroPython SDK for M5Stack devices with Node.js and Web Serial s
 ```bash
 npm i @h1mpy-sdk/node   # Node.js environments
 npm i @h1mpy-sdk/web    # Browser apps via Web Serial
+npm i @h1mpy-sdk/cli    # Command-line tools
 ```
 
 The `serialport` dependency is included automatically when using the Node package.
 
 ### Packages
 
-The project is organised as a small monorepo:
+The project is organised as a monorepo with the following packages:
 
-- `@h1mpy-sdk/core` – common logic and utilities
+- `@h1mpy-sdk/core` – shared core logic and utilities
 - `@h1mpy-sdk/node` – Node.js serial implementation
-- `@h1mpy-sdk/web` – browser/Web Serial support
+- `@h1mpy-sdk/web` – browser/Web Serial support  
+- `@h1mpy-sdk/cli` – command-line interface and TUI tools
 
 ## Quick Start
 
-### Node.js Examples
+### Quick Start Examples
 Working examples with real M5Stack hardware:
 
 ```bash
@@ -49,26 +52,34 @@ node simple-repl-test.js          # Basic REPL functionality
 # Web examples (in examples/web/)
 cd examples/web && pnpm dev      # Start web development server
 # Then open http://localhost:3000 in Chrome/Edge
+
+# CLI and TUI tools
+pnpm cli                         # Command-line interface
+pnpm cli:tui                     # Interactive terminal UI
 ```
 
 ### Development Commands
 
 ```bash
 # Build all packages
-pnpm build              # Build Node.js and Web packages
-pnpm build:node         # CommonJS for Node.js only
-pnpm build:types        # TypeScript definitions only
+pnpm build              # Build all packages (Node.js, Web, CLI)
+pnpm clean              # Clean build artifacts
 
 # Development
 pnpm dev                # Quick development build
 pnpm lint               # Run ESLint
 pnpm format             # Format with Prettier
-pnpm clean              # Clean build artifacts
 
 # Testing
 pnpm test               # Run all unit tests
 pnpm test:watch         # Run tests in watch mode
 pnpm test:coverage      # Run tests with coverage
+
+# Tools
+pnpm cli                # Start command-line interface
+pnpm cli:tui            # Start terminal user interface
+pnpm example:node       # Run Node.js examples
+pnpm example:web        # Start web example server
 ```
 
 ### Basic Usage
@@ -118,6 +129,65 @@ const connection = await client.connect(port);
 const result = await connection.executeCode('print("Hello from Browser!")');
 console.log('Output:', result.output);
 ```
+
+## Command Line Interface (CLI)
+
+The `@h1mpy-sdk/cli` package provides powerful command-line tools for M5Stack development.
+
+### Installation & Quick Start
+
+```bash
+# Install CLI package
+npm i -g @h1mpy-sdk/cli
+
+# Or use via pnpm in development
+pnpm cli        # Start CLI
+pnpm cli:tui    # Start Terminal UI
+```
+
+### CLI Commands
+
+```bash
+# Device discovery
+m5stack-cli list-ports
+
+# Code execution
+m5stack-cli exec /dev/ttyUSB0 "print('Hello M5Stack!')"
+
+# File operations
+m5stack-cli upload /dev/ttyUSB0 ./script.py
+m5stack-cli download /dev/ttyUSB0 /flash/main.py ./main.py
+m5stack-cli ls /dev/ttyUSB0 /flash
+
+# Device information
+m5stack-cli info /dev/ttyUSB0
+
+# Interactive REPL
+m5stack-cli repl /dev/ttyUSB0
+```
+
+### Terminal User Interface (TUI)
+
+Interactive menu-driven interface with full M5Stack control:
+
+```bash
+pnpm cli:tui
+```
+
+**TUI Features:**
+- 📡 Device selection and connection management
+- 🐍 Python code execution with real-time output
+- 📁 File upload/download with progress tracking
+- 📊 Device information and system status
+- 💾 Firmware backup and restore
+- 🎨 M5Stack LCD control and animation
+- 🔧 Comprehensive testing suite
+
+**TUI Navigation:**
+- Use arrow keys to navigate menus
+- Press Enter to select options
+- Press 'q' to quit at any time
+- All operations provide real-time feedback
 
 ### File Transfer with Progress
 
@@ -270,6 +340,20 @@ const client = new M5StackClient();
 const connection = await client.connect(port);
 ```
 
+### Command Line Interface
+
+```bash
+# Global installation
+npm i -g @h1mpy-sdk/cli
+
+# Usage
+m5stack-cli list-ports
+m5stack-cli exec /dev/ttyUSB0 "print('Hello!')"
+
+# Interactive TUI
+m5stack-tui
+```
+
 ### React Native
 
 ```typescript
@@ -344,13 +428,19 @@ print("Device ready")
 #### CLI Persistence Commands
 
 ```bash
-pnpm cli
+# Command-line approach
+m5stack-cli upload /dev/ttyUSB0 ./main.py -r /flash/main.py
 
-# In CLI:
-M5Stack> connect
-M5Stack> save print("Hello on boot!")  # Save to main.py
-M5Stack> backup                        # Backup all files  
-M5Stack> restore                       # Restore from backup
+# Interactive TUI approach
+pnpm cli:tui
+# Then select device, choose "Save to main.py" and "Backup Firmware"
+
+# CLI with persistence
+m5stack-cli exec /dev/ttyUSB0 "
+from m5stack import *
+setScreenColor(0x000000)
+M5TextBox(10, 10, 'Persistent App', lcd.FONT_Default, 0x00FF00)
+"
 ```
 
 ## Error Handling
@@ -421,21 +511,28 @@ MIT License. See [LICENSE](LICENSE) for details.
 # Install dependencies (required: pnpm)
 pnpm install
 
-# Build all targets
+# Build all packages (core, node, web, cli)
 pnpm build
 
-# Build specific components
-pnpm build:node     # CommonJS for Node.js
-pnpm build:types    # TypeScript definitions
-
-# Development build (quick Node.js only)
-pnpm dev
+# Development builds
+pnpm dev            # Quick development build
 
 # Code quality
-pnpm lint           # Run ESLint
+pnpm lint           # Run ESLint on all packages
 pnpm lint:fix       # Fix ESLint issues
 pnpm format         # Format code with Prettier
 pnpm format:check   # Check formatting
+
+# Testing
+pnpm test           # Run all unit tests
+pnpm test:watch     # Run tests in watch mode
+pnpm test:coverage  # Run tests with coverage
+
+# Tools and examples
+pnpm cli            # Start CLI interface
+pnpm cli:tui        # Start Terminal UI
+pnpm example:node   # Run Node.js examples
+pnpm example:web    # Start web example server
 
 # Clean build artifacts
 pnpm clean
