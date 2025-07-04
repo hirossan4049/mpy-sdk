@@ -4,7 +4,9 @@
   "description": "Node.js examples for M5Stack communication",
   "private": true,
   "scripts": {
-    "basic": "node basic-usage.js",
+    "basic": "node demo-test.js",
+    "simple": "node simple-test.js",
+    "advanced": "node basic-usage.js",
     "repl": "node repl-example.js",
     "file-ops": "node file-operations.js",
     "device-info": "node device-info.js",
@@ -12,7 +14,8 @@
     "flash-firmware": "node flash-firmware.js",
     "monitor": "node device-monitor.js",
     "batch": "node batch-operations.js",
-    "test": "node test-all.js"
+    "test": "node test-all.js",
+    "working": "node working-test.js"
   },
   "dependencies": {
     "@h1mpy-sdk/node": "file:../../packages/node",
