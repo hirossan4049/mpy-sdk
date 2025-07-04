@@ -1,0 +1,19 @@
+{
+  "name": "@h1mpy-sdk/web-example",
+  "version": "1.0.0",
+  "description": "Web Serial API example for M5Stack communication",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@h1mpy-sdk/web": "file:../../packages/web",
+    "@h1mpy-sdk/core": "file:../../packages/core"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

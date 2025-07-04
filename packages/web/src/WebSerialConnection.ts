@@ -8,8 +8,157 @@ import {
   CommunicationError,
   ConnectionOptions,
   PortInfo,
-  BaseSerialConnection,
-} from '@h1mpy-sdk/core';
+} from '../../core/src/types';
+
+// Browser Buffer polyfill
+class BrowserBuffer {
+  private data: Uint8Array;
+
+  constructor(data: ArrayBuffer | Uint8Array | number[] | string) {
+    if (typeof data === 'string') {
+      const encoder = new TextEncoder();
+      this.data = encoder.encode(data);
+    } else if (data instanceof ArrayBuffer) {
+      this.data = new Uint8Array(data);
+    } else if (Array.isArray(data)) {
+      this.data = new Uint8Array(data);
+    } else {
+      this.data = data;
+    }
+  }
+
+  static from(data: ArrayBuffer | Uint8Array | number[] | string): BrowserBuffer {
+    return new BrowserBuffer(data);
+  }
+
+  static alloc(size: number): BrowserBuffer {
+    return new BrowserBuffer(new Uint8Array(size));
+  }
+
+  static concat(buffers: BrowserBuffer[]): BrowserBuffer {
+    const totalLength = buffers.reduce((sum, buf) => sum + buf.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const buffer of buffers) {
+      result.set(buffer.data, offset);
+      offset += buffer.length;
+    }
+    return new BrowserBuffer(result);
+  }
+
+  get length(): number {
+    return this.data.length;
+  }
+
+  toString(encoding?: string): string {
+    if (encoding === 'hex') {
+      return Array.from(this.data)
+        .map(byte => byte.toString(16).padStart(2, '0'))
+        .join('');
+    }
+    const decoder = new TextDecoder();
+    return decoder.decode(this.data);
+  }
+
+  slice(start?: number, end?: number): BrowserBuffer {
+    return new BrowserBuffer(this.data.slice(start, end));
+  }
+
+  subarray(start?: number, end?: number): Uint8Array {
+    return this.data.subarray(start, end);
+  }
+
+  [Symbol.iterator]() {
+    return this.data[Symbol.iterator]();
+  }
+}
+
+// Use BrowserBuffer as Buffer in browser environment
+const Buffer = BrowserBuffer;
+
+// Browser-compatible EventEmitter base class
+class BrowserEventEmitter {
+  private listeners: { [event: string]: Function[] } = {};
+
+  on(event: string, listener: Function): this {
+    if (!this.listeners[event]) {
+      this.listeners[event] = [];
+    }
+    this.listeners[event].push(listener);
+    return this;
+  }
+
+  off(event: string, listener: Function): this {
+    if (!this.listeners[event]) return this;
+    const index = this.listeners[event].indexOf(listener);
+    if (index > -1) {
+      this.listeners[event].splice(index, 1);
+    }
+    return this;
+  }
+
+  emit(event: string, ...args: any[]): boolean {
+    if (!this.listeners[event]) return false;
+    this.listeners[event].forEach(listener => listener(...args));
+    return true;
+  }
+}
+
+// Base connection class for web
+abstract class BaseWebSerialConnection extends BrowserEventEmitter {
+  protected port: string;
+  protected options: Required<ConnectionOptions>;
+  protected isConnected: boolean = false;
+  protected isBusy: boolean = false;
+
+  constructor(port: string, options: ConnectionOptions = {}) {
+    super();
+    this.port = port;
+    this.options = {
+      baudRate: options.baudRate || 115200,
+      timeout: options.timeout || 5000,
+      autoReconnect: options.autoReconnect || false,
+    };
+  }
+
+  abstract connect(): Promise<void>;
+  abstract disconnect(): Promise<void>;
+  abstract isOpen(): boolean;
+  protected abstract writeRaw(data: BrowserBuffer): Promise<void>;
+
+  protected onConnected(): void {
+    this.isConnected = true;
+    console.log(`Connected to ${this.port}`);
+    this.emit('connect');
+  }
+
+  protected onDisconnected(): void {
+    this.isConnected = false;
+    console.log(`Disconnected from ${this.port}`);
+    this.emit('disconnect');
+  }
+
+  protected onError(error: Error): void {
+    console.error(`Serial connection error on ${this.port}:`, error);
+    this.emit('error', error);
+  }
+
+  protected onDataReceived(data: BrowserBuffer): void {
+    this.emit('data', data);
+  }
+
+  get connected(): boolean {
+    return this.isConnected;
+  }
+
+  get busy(): boolean {
+    return this.isBusy;
+  }
+
+  get portName(): string {
+    return this.port;
+  }
+}
 
 // Minimal interfaces for Web Serial types to avoid depending on lib.dom
 export interface WebSerialPort {
@@ -19,10 +168,16 @@ export interface WebSerialPort {
   writable: WritableStream<Uint8Array> | null;
 }
 
-export class WebSerialConnection extends BaseSerialConnection {
+export class WebSerialConnection extends BaseWebSerialConnection {
   private serialPort: WebSerialPort | null;
   private reader: ReadableStreamDefaultReader<Uint8Array> | null = null;
   private writer: WritableStreamDefaultWriter<Uint8Array> | null = null;
+  private responseBuffer: string = '';
+  private currentCommand?: {
+    resolve: (value: string) => void;
+    reject: (error: Error) => void;
+    timeout: number;
+  };
 
   constructor(port: WebSerialPort, options: ConnectionOptions = {}) {
     super('webserial', options);
@@ -88,11 +243,12 @@ export class WebSerialConnection extends BaseSerialConnection {
     }
   }
 
-  protected async writeRaw(data: Buffer): Promise<void> {
+  protected async writeRaw(data: BrowserBuffer): Promise<void> {
     if (!this.writer) {
       throw new CommunicationError('Not connected');
     }
-    await this.writer.write(data);
+    // Convert BrowserBuffer to Uint8Array for Web Serial API
+    await this.writer.write(data.subarray());
   }
 
   isOpen(): boolean {
@@ -109,11 +265,84 @@ export class WebSerialConnection extends BaseSerialConnection {
         const { value, done } = await this.reader.read();
         if (done) break;
         if (value) {
-          this.onDataReceived(Buffer.from(value));
+          // Convert to text for REPL processing
+          const decoder = new TextDecoder();
+          const text = decoder.decode(value);
+          this.processREPLResponse(text);
+          
+          // Also emit as buffer for protocol use
+          this.onDataReceived(new BrowserBuffer(value));
         }
       }
     } catch (error) {
       this.onError(error as Error);
     }
+  }
+
+  private processREPLResponse(data: string): void {
+    this.responseBuffer += data;
+    
+    if (this.currentCommand && this.responseBuffer.includes('>>> ')) {
+      // Extract response before the prompt
+      const lines = this.responseBuffer.split('\n');
+      const responseLines: string[] = [];
+
+      for (const line of lines) {
+        if (line.includes('>>> ')) {
+          break;
+        }
+        const trimmed = line.trim();
+        if (trimmed && !trimmed.startsWith('>>>')) {
+          responseLines.push(trimmed);
+        }
+      }
+
+      const response = responseLines.join('\n').trim();
+
+      clearTimeout(this.currentCommand.timeout);
+      this.currentCommand.resolve(response);
+      this.currentCommand = undefined;
+      this.responseBuffer = '';
+    }
+  }
+
+  async sendREPLCommand(command: string, timeout: number = 5000): Promise<string> {
+    if (!this.writer || !this.connected) {
+      throw new CommunicationError('Not connected');
+    }
+
+    return new Promise<string>((resolve, reject) => {
+      this.responseBuffer = '';
+
+      const timeoutHandle = setTimeout(() => {
+        this.currentCommand = undefined;
+        reject(new Error(`Command timeout after ${timeout}ms`));
+      }, timeout);
+
+      this.currentCommand = {
+        resolve,
+        reject,
+        timeout: timeoutHandle,
+      };
+
+      const encoder = new TextEncoder();
+      this.writer!.write(encoder.encode(command + '\r\n'));
+    });
+  }
+
+  async initializeREPL(): Promise<void> {
+    if (!this.writer) return;
+
+    // Send Ctrl+C to interrupt any running program
+    await this.writer.write(new Uint8Array([0x03]));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Clear any pending input
+    const encoder = new TextEncoder();
+    await this.writer.write(encoder.encode('\r\n'));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    this.responseBuffer = '';
+    console.log('REPL initialized');
   }
 }
