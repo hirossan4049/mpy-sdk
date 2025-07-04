@@ -202,24 +202,6 @@ await connection.writeFile('/flash/script.py', fileContent, {
 });
 ```
 
-### Python Dependency Analysis
-
-```typescript
-import { PythonAnalyzer } from '@h1mpy-sdk/node';
-
-const analyzer = new PythonAnalyzer();
-const code = `
-import config
-from utils import helper
-
-config.setup()
-helper.log("Starting application")
-`;
-
-const imports = analyzer.parseImports(code);
-console.log('Imports found:', imports);
-```
-
 ### Event Handling
 
 ```typescript
@@ -354,19 +336,12 @@ m5stack-cli exec /dev/ttyUSB0 "print('Hello!')"
 m5stack-tui
 ```
 
-### React Native
-
-```typescript
-import { M5StackClient } from '@h1mpy-sdk/react-native';
-// Uses react-native-serial
-```
-
 ## Advanced Usage
 
 ### Custom Protocol Handler
 
 ```typescript
-import { ProtocolHandler } from '@h1mpy-sdk/node';
+import { ProtocolHandler } from '@h1mpy-sdk/core';
 
 const protocol = new ProtocolHandler();
 const frame = protocol.createFrame(commandBuffer);
@@ -375,10 +350,10 @@ const frame = protocol.createFrame(commandBuffer);
 ### File Transfer Management
 
 ```typescript
-import { FileTransferManager } from '@h1mpy-sdk/node';
+import { FileTransfer } from '@h1mpy-sdk/core';
 
-const transferManager = new FileTransferManager(connection);
-await transferManager.uploadFile(filename, content, true, {
+const fileTransfer = new FileTransfer(connection);
+await fileTransfer.uploadFile(filename, content, {
   chunkSize: 256,
   onProgress: (progress) => console.log(progress),
   retryAttempts: 3
@@ -388,14 +363,11 @@ await transferManager.uploadFile(filename, content, true, {
 ### Python Code Analysis
 
 ```typescript
-import { PythonAnalyzer } from '@h1mpy-sdk/node';
+import { PythonAnalyzer } from '@h1mpy-sdk/core';
 
 const analyzer = new PythonAnalyzer();
-const analysis = await analyzer.analyzeProject('main.py', codeContent);
-
-console.log('Dependencies:', analysis.dependencies);
-console.log('Missing files:', analysis.missingFiles);
-console.log('Circular dependencies:', analysis.circularDependencies);
+const imports = analyzer.parseImports(codeContent);
+console.log('Dependencies:', imports);
 ```
 
 ### Firmware Persistence
@@ -404,7 +376,7 @@ Make your code run automatically on M5Stack boot:
 
 ```typescript
 // Save persistent code that runs on boot
-await connection.writeFile('/main.py', `
+await connection.writeFile('/flash/main.py', `
 from m5stack import *
 from m5ui import *
 import time
@@ -418,7 +390,7 @@ while True:
 `);
 
 // Create boot configuration
-await connection.writeFile('/boot.py', `
+await connection.writeFile('/flash/boot.py', `
 import gc
 gc.collect()
 print("Device ready")
@@ -453,7 +425,7 @@ import {
   TimeoutError, 
   DeviceBusyError, 
   FileNotFoundError 
-} from '@h1mpy-sdk/node';
+} from '@h1mpy-sdk/core';
 
 try {
   await connection.executeCode('print("hello")');
@@ -491,7 +463,7 @@ const DEFAULT_CONFIG = {
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-feature`
 3. Make your changes and validate with examples
-4. Test functionality: `pnpm test && pnpm test:quick`
+4. Test functionality: `pnpm test && pnpm example:node`
 5. Submit a pull request
 
 ## License
@@ -540,7 +512,7 @@ pnpm clean
 
 ### Requirements
 
-- Node.js >= 16.0.0
+- Node.js >= 18.0.0
 - pnpm (required package manager)
 - M5Stack device with MicroPython firmware
 
