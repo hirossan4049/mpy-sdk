@@ -1,10 +1,10 @@
 # M5Stack Node.js Examples
 
-This directory contains comprehensive examples for using the `@h1mpy-sdk/node` package to communicate with M5Stack devices from Node.js applications.
+This directory contains working examples for using the `@h1mpy-sdk/node` package to communicate with M5Stack devices from Node.js applications.
 
 ## Prerequisites
 
-- Node.js 18+ (ES modules support)
+- Node.js 16+ (CommonJS support)
 - M5Stack device with MicroPython firmware
 - USB cable connection
 - Serial port access permissions
@@ -22,33 +22,67 @@ This directory contains comprehensive examples for using the `@h1mpy-sdk/node` p
    - **Windows**: `COM*` (e.g., COM3, COM4)
    - **Linux**: `/dev/ttyUSB*` or `/dev/ttyACM*`
 
-3. **Run basic example**:
+3. **Run working example**:
    ```bash
-   pnpm basic
+   node working-test.js
    ```
 
 ## Examples Overview
 
-### 1. Basic Usage (`basic-usage.js`)
-**Command**: `pnpm basic`
+### 1. Working Test (`working-test.js`) ✅
+**Command**: `node working-test.js`
 
-Demonstrates fundamental operations:
-- Serial port discovery and connection
-- Device status checking
-- Python code execution
-- File operations (create, read, delete)
-- Device information retrieval
+**Verified working example** with real M5Stack hardware:
+- REPL communication and initialization
+- Basic Python code execution
+- Variable operations and persistence
+- System information retrieval
+- M5Stack LCD control and display
+- Button status reading
+- File operations (create, read, execute)
+- Directory listing
 
 **Features**:
-- ✅ Auto-port detection
-- ✅ Error handling and cleanup
-- ✅ Progress logging
-- ✅ Basic file management
+- ✅ **Hardware tested** on M5Stack device
+- ✅ REPL mode communication
+- ✅ LCD control verification
+- ✅ Complete error handling
+- ✅ Real device compatibility
 
 ---
 
-### 2. REPL Interactive (`repl-example.js`)
-**Command**: `pnpm repl [port_path]`
+### 2. Basic Connection Test (`basic-connection-test.js`)
+**Command**: `node basic-connection-test.js`
+
+**Simple debugging test** for troubleshooting:
+- Basic serial connection
+- REPL initialization
+- Simple command execution
+- Minimal error handling
+- Connection state testing
+
+**Use this for**:
+- 🔧 Debugging connection issues
+- 🔍 Testing device responsiveness
+- ⚡ Quick connection verification
+- 🐛 Troubleshooting timeouts
+
+---
+
+### 3. Simple REPL Test (`simple-repl-test.js`)
+**Command**: `node simple-repl-test.js`
+
+**Basic REPL functionality test**:
+- Python code execution
+- Math calculations
+- System information
+- M5Stack feature testing
+- Device information retrieval
+
+---
+
+### 4. REPL Interactive (`repl-example.js`) 
+**Command**: `node repl-example.js [port_path]`
 
 Shows advanced REPL (Read-Eval-Print Loop) usage:
 - Interactive MicroPython development
