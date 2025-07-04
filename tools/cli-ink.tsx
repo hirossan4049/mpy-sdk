@@ -3,12 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { render, Text, Box, useInput, useApp } from 'ink';
 import SelectInput from 'ink-select-input';
 import Spinner from 'ink-spinner';
-import { createRequire } from 'module';
 import fs from 'fs';
-
-const require = createRequire(import.meta.url);
-const { M5StackClient } = require('../dist/node/index.js');
-const { REPLAdapter } = require('../dist/node/adapters/REPLAdapter.js');
+import { M5StackClient } from '../src/index.js';
+import { REPLAdapter } from '../src/adapters/REPLAdapter.js';
 
 const CLI = () => {
   const { exit } = useApp();

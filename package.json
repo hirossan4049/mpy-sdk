@@ -2,6 +2,7 @@
   "name": "@hirossan4049/mpy-sdk",
   "version": "1.0.0",
   "description": "MicroPython SDK for M5Stack devices - Node.js serial communication library",
+  "type": "module",
   "main": "dist/node/index.js",
   "types": "dist/types/index.d.ts",
   "files": [
@@ -12,7 +13,7 @@
   ],
   "exports": {
     ".": {
-      "require": "./dist/node/index.js",
+      "import": "./dist/node/index.js",
       "types": "./dist/types/index.d.ts"
     }
   },
@@ -30,7 +31,7 @@
     "quick-test:legacy": "pnpm build:node && node tools/quick-test.js",
     "demo": "pnpm build:node && node examples/repl-adapter-example.js",
     "example": "pnpm build:node && node examples/basic-usage.js",
-    "cli": "pnpm build:node && tsx tools/cli-ink.tsx",
+    "cli": "node --import tsx/esm --no-warnings tools/cli-ink.tsx",
     "cli:legacy": "pnpm build:node && node tools/cli.js",
     "persist": "pnpm build:node && node examples/firmware-persistence.js",
     "prepublishOnly": "pnpm clean && pnpm build && pnpm quick-test"
