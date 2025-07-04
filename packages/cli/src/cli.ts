@@ -31,7 +31,7 @@ async function listPorts() {
       console.log(`   ${index + 1}. ${port.path} - ${manufacturer}`);
     });
   } catch (error) {
-    console.error('❌ Error listing ports:', error.message);
+    console.error('❌ Error listing ports:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
@@ -45,7 +45,7 @@ async function connectToDevice(portPath: string) {
     console.log('✅ Connected successfully!');
     return adapter;
   } catch (error) {
-    console.error('❌ Connection failed:', error.message);
+    console.error('❌ Connection failed:', error instanceof Error ? error.message : String(error));
     process.exit(1);
   }
 }
@@ -59,7 +59,7 @@ async function executeCode(portPath: string, code: string) {
     console.log('✅ Execution result:');
     console.log(result.output);
   } catch (error) {
-    console.error('❌ Execution failed:', error.message);
+    console.error('❌ Execution failed:', error instanceof Error ? error.message : String(error));
   } finally {
     await adapter.disconnect();
   }
@@ -76,7 +76,7 @@ async function uploadFile(portPath: string, localFile: string, remotePath?: stri
     await adapter.writeFile(targetPath, content);
     console.log('✅ File uploaded successfully!');
   } catch (error) {
-    console.error('❌ Upload failed:', error.message);
+    console.error('❌ Upload failed:', error instanceof Error ? error.message : String(error));
   } finally {
     await adapter.disconnect();
   }
@@ -93,7 +93,7 @@ async function downloadFile(portPath: string, remotePath: string, localFile?: st
     fs.writeFileSync(targetFile, content);
     console.log(`✅ File downloaded to ${targetFile}`);
   } catch (error) {
-    console.error('❌ Download failed:', error.message);
+    console.error('❌ Download failed:', error instanceof Error ? error.message : String(error));
   } finally {
     await adapter.disconnect();
   }
@@ -111,7 +111,7 @@ async function listFiles(portPath: string, remotePath: string = '/') {
       console.log(`   ${icon} ${file.name}`);
     });
   } catch (error) {
-    console.error('❌ List failed:', error.message);
+    console.error('❌ List failed:', error instanceof Error ? error.message : String(error));
   } finally {
     await adapter.disconnect();
   }
@@ -132,7 +132,7 @@ async function getDeviceInfo(portPath: string) {
       console.log(`   MAC Address: ${info.macAddress}`);
     }
   } catch (error) {
-    console.error('❌ Failed to get device info:', error.message);
+    console.error('❌ Failed to get device info:', error instanceof Error ? error.message : String(error));
   } finally {
     await adapter.disconnect();
   }
@@ -202,7 +202,7 @@ program
     
     rl.prompt();
     
-    rl.on('line', async (input) => {
+    rl.on('line', async (input: string) => {
       const code = input.trim();
       if (code === 'exit()' || code === 'quit()') {
         await adapter.disconnect();
@@ -214,7 +214,7 @@ program
         const result = await adapter.executeCode(code);
         console.log(result.output);
       } catch (error) {
-        console.error('Error:', error.message);
+        console.error('Error:', error instanceof Error ? error.message : String(error));
       }
       
       rl.prompt();

@@ -10,10 +10,10 @@ import { REPLAdapter } from '@h1mpy-sdk/core';
 const CLI = () => {
   const { exit } = useApp();
   const [screen, setScreen] = useState('menu');
-  const [ports, setPorts] = useState([]);
+  const [ports, setPorts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPort, setSelectedPort] = useState(null);
-  const [adapter, setAdapter] = useState(null);
+  const [selectedPort, setSelectedPort] = useState<string | null>(null);
+  const [adapter, setAdapter] = useState<any>(null);
   const [message, setMessage] = useState('');
   const [commandResult, setCommandResult] = useState('');
 
@@ -34,17 +34,17 @@ const CLI = () => {
         }));
       
       if (portItems.length === 0) {
-        portItems.push({ label: 'No M5Stack devices found', value: null });
+        portItems.push({ label: 'No M5Stack devices found', value: '' });
       }
       
       setPorts(portItems);
     } catch (error) {
-      setMessage(`Error loading ports: ${error.message}`);
+      setMessage(`Error loading ports: ${error instanceof Error ? error.message : String(error)}`);
     }
     setLoading(false);
   };
 
-  const handlePortSelect = async (item) => {
+  const handlePortSelect = async (item: any) => {
     if (!item.value) {
       setMessage('No valid port selected');
       return;
@@ -61,7 +61,7 @@ const CLI = () => {
       setMessage(`Connected to ${item.value}`);
       setScreen('connected');
     } catch (error) {
-      setMessage(`Connection failed: ${error.message}`);
+      setMessage(`Connection failed: ${error instanceof Error ? error.message : String(error)}`);
       setSelectedPort(null);
     }
     setLoading(false);
@@ -84,7 +84,7 @@ const CLI = () => {
     { label: '❌ Exit', value: 'exit' }
   ];
 
-  const handleMainMenu = async (item) => {
+  const handleMainMenu = async (item: any) => {
     switch (item.value) {
       case 'connect':
         setScreen('ports');
@@ -99,7 +99,7 @@ const CLI = () => {
     }
   };
 
-  const handleConnectedMenu = async (item) => {
+  const handleConnectedMenu = async (item: any) => {
     setCommandResult('');
     setLoading(true);
 
@@ -112,7 +112,7 @@ const CLI = () => {
 
         case 'files':
           const files = await adapter.listDirectory('/');
-          const fileList = files.map(f => {
+          const fileList = files.map((f: any) => {
             const icon = f.type === 'directory' ? '📁' : '📄';
             return `${icon} ${f.name}`;
           }).join('\n');
@@ -144,7 +144,7 @@ while True:
 
         case 'backup':
           const backupFiles = await adapter.listDirectory('/');
-          const backup = {};
+          const backup: Record<string, any> = {};
           let backedUp = 0;
 
           for (const file of backupFiles) {
@@ -175,10 +175,14 @@ while True:
           }
 
           const latestBackup = backupFilesList.sort().pop();
+          if (!latestBackup) {
+            setCommandResult('No backup files found');
+            break;
+          }
           const backupData = JSON.parse(fs.readFileSync(latestBackup, 'utf8'));
           let restored = 0;
 
-          for (const [filename, content] of Object.entries(backupData)) {
+          for (const [filename, content] of Object.entries(backupData as Record<string, any>)) {
             try {
               await adapter.writeFile(`/${filename}`, content);
               restored++;
@@ -204,7 +208,7 @@ while True:
           break;
       }
     } catch (error) {
-      setCommandResult(`Error: ${error.message}`);
+      setCommandResult(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     setLoading(false);

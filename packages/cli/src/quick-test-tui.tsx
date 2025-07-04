@@ -208,7 +208,7 @@ const usePortManager = () => {
 
 // Test runner class - comprehensive implementation testing
 class TestRunner {
-  private adapter: any;
+  public adapter: any;
   private addResult: (icon: string, message: string, success?: boolean) => void;
 
   constructor(adapter: any, addResult: (icon: string, message: string, success?: boolean) => void) {
@@ -594,11 +594,11 @@ else:
     this.addResult('✅', `Found ${files.length} files/directories`);
     
     // List some specific files for verification
-    const importantFiles = files.filter(f => 
+    const importantFiles = files.filter((f: any) => 
       f.name.endsWith('.py') || f.name === 'project' || f.name === 'test_quick.txt'
     );
     if (importantFiles.length > 0) {
-      this.addResult('📋', `Python files: ${importantFiles.map(f => f.name).join(', ')}`);
+      this.addResult('📋', `Python files: ${importantFiles.map((f: any) => f.name).join(', ')}`);
     }
   }
 
@@ -752,7 +752,7 @@ const QuickTest = () => {
     setPhase('testing');
     clearResults();
 
-    let adapter: typeof REPLAdapter = null;
+    let adapter: any = null;
     const testRunner = new TestRunner(adapter, addResult);
 
     try {
@@ -763,7 +763,7 @@ const QuickTest = () => {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       addResult('❌', `Error: ${errorMessage}`, false);
     } finally {
-      if (adapter) {
+      if (adapter && adapter.disconnect) {
         await adapter.disconnect();
         addResult('📡', 'Disconnected');
       }
