@@ -97,30 +97,89 @@ export class PythonAnalyzer {
   /**
    * Resolve module name to potential file paths
    */
-  resolveModulePaths(module: string, isRelative: boolean = false): string[] {
+  resolveModulePaths(module: string, isRelative: boolean = false, currentFile?: string): string[] {
     const paths: string[] = [];
 
-    if (isRelative) {
-      // Relative imports - would need current file context
-      return paths;
-    }
-
-    // Standard module resolution
-    if (module.includes('.')) {
-      // Package.module -> package/module.py
-      const packagePath = module.replace(/\./g, '/');
-      paths.push(`${packagePath}.py`);
-      paths.push(`${packagePath}/__init__.py`);
+    if (isRelative && currentFile) {
+      // Handle relative imports based on current file context
+      const currentDir = this.getDirectoryPath(currentFile);
+      
+      if (module.includes('.')) {
+        // Package.module -> package/module.py
+        const packagePath = module.replace(/\./g, '/');
+        paths.push(`${currentDir}/${packagePath}.py`);
+        paths.push(`${currentDir}/${packagePath}/__init__.py`);
+      } else {
+        // Simple module -> module.py
+        paths.push(`${currentDir}/${module}.py`);
+      }
+      
+      // Also check parent directories for relative imports
+      const parentDir = this.getParentDirectory(currentDir);
+      if (parentDir !== currentDir) {
+        if (module.includes('.')) {
+          const packagePath = module.replace(/\./g, '/');
+          paths.push(`${parentDir}/${packagePath}.py`);
+          paths.push(`${parentDir}/${packagePath}/__init__.py`);
+        } else {
+          paths.push(`${parentDir}/${module}.py`);
+        }
+      }
+    } else if (isRelative) {
+      // Relative import without context - try common patterns
+      if (module.includes('.')) {
+        const packagePath = module.replace(/\./g, '/');
+        paths.push(`./${packagePath}.py`);
+        paths.push(`./${packagePath}/__init__.py`);
+        paths.push(`../${packagePath}.py`);
+        paths.push(`../${packagePath}/__init__.py`);
+      } else {
+        paths.push(`./${module}.py`);
+        paths.push(`../${module}.py`);
+      }
     } else {
-      // Simple module -> module.py
-      paths.push(`${module}.py`);
-    }
+      // Standard module resolution
+      if (module.includes('.')) {
+        // Package.module -> package/module.py
+        const packagePath = module.replace(/\./g, '/');
+        paths.push(`${packagePath}.py`);
+        paths.push(`${packagePath}/__init__.py`);
+      } else {
+        // Simple module -> module.py
+        paths.push(`${module}.py`);
+      }
 
-    // Add common MicroPython locations
-    paths.push(`/flash/${module}.py`);
-    paths.push(`/flash/lib/${module}.py`);
+      // Add common MicroPython locations
+      paths.push(`/flash/${module}.py`);
+      paths.push(`/flash/lib/${module}.py`);
+    }
 
     return paths;
+  }
+
+  /**
+   * Get directory path from file path
+   */
+  private getDirectoryPath(filePath: string): string {
+    const lastSlash = filePath.lastIndexOf('/');
+    if (lastSlash === -1) {
+      return '.';
+    }
+    return filePath.substring(0, lastSlash);
+  }
+
+  /**
+   * Get parent directory path
+   */
+  private getParentDirectory(dirPath: string): string {
+    if (dirPath === '.' || dirPath === '') {
+      return '..';
+    }
+    const lastSlash = dirPath.lastIndexOf('/');
+    if (lastSlash === -1) {
+      return '.';
+    }
+    return dirPath.substring(0, lastSlash);
   }
 
   /**
@@ -190,7 +249,7 @@ export class PythonAnalyzer {
         const dependencies: string[] = [];
 
         for (const imp of localImports) {
-          const possiblePaths = this.resolveModulePaths(imp.module, imp.isRelative);
+          const possiblePaths = this.resolveModulePaths(imp.module, imp.isRelative, filename);
 
           // For now, just use the first possible path
           if (possiblePaths.length > 0) {

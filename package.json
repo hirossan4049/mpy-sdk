@@ -2,7 +2,6 @@
   "name": "@hirossan4049/mpy-sdk",
   "version": "1.0.0",
   "description": "MicroPython SDK for M5Stack devices - Node.js serial communication library",
-  "type": "module",
   "main": "dist/node/index.js",
   "types": "dist/types/index.d.ts",
   "files": [
@@ -27,14 +26,20 @@
     "format:check": "prettier --check \"src/**/*.ts\"",
     "clean": "rimraf dist",
     "dev": "pnpm build:node",
-    "quick-test": "pnpm build:node && tsx tools/quick-test-tui.tsx",
-    "quick-test:legacy": "pnpm build:node && node tools/quick-test.js",
+    "test": "NODE_ENV=test jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "quick-test": "pnpm build:node && node tools/quick-test-comprehensive.js",
+    "quick-test-tui": "pnpm build:node && npx tsx tools/quick-test-tui.tsx",
     "demo": "pnpm build:node && node examples/repl-adapter-example.js",
     "example": "pnpm build:node && node examples/basic-usage.js",
     "tui": "node --import tsx/esm --no-warnings tools/tui.tsx",
     "cli": "tsx src/cli.ts",
     "cli:tui": "node --import tsx/esm --no-warnings tools/tui.tsx",
     "persist": "pnpm build:node && node examples/firmware-persistence.js",
+    "flash-sample": "pnpm build:node && node tools/flash-sample.js",
+    "flash-simple": "pnpm build:node && node tools/flash-sample.js simple",
+    "flash-advanced": "pnpm build:node && node tools/flash-sample.js advanced",
     "prepublishOnly": "pnpm clean && pnpm build && pnpm quick-test"
   },
   "keywords": [
@@ -65,6 +70,7 @@
   },
   "packageManager": "pnpm@8.15.0",
   "devDependencies": {
+    "@types/jest": "^29.5.0",
     "@types/node": "^20.11.0",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
@@ -72,10 +78,12 @@
     "ink": "^6.0.1",
     "ink-select-input": "^6.2.0",
     "ink-spinner": "^5.0.0",
+    "jest": "^29.5.0",
     "prettier": "^3.2.0",
     "react": "^19.1.0",
-    "tsx": "^4.7.0",
     "rimraf": "^5.0.5",
+    "ts-jest": "^29.1.0",
+    "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   },
   "dependencies": {

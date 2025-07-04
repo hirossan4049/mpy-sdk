@@ -1,27 +1,12 @@
-#!/usr/bin/env tsx
-import { Box, render, Text, useApp } from 'ink';
-import SelectInput from 'ink-select-input';
-import Spinner from 'ink-spinner';
-import { createRequire } from 'module';
-import React, { useCallback, useEffect, useState } from 'react';
+#!/usr/bin/env node
 
-const require = createRequire(import.meta.url);
+/**
+ * Comprehensive M5Stack SDK Test Suite (without Ink dependency)
+ * Based on quick-test-tui.tsx but using native Node.js console interaction
+ */
+
 const { M5StackClient } = require('../dist/node/index.js');
 const { REPLAdapter } = require('../dist/node/adapters/REPLAdapter.js');
-
-// Types
-interface TestResult {
-  icon: string;
-  message: string;
-  success: boolean;
-}
-
-interface PortItem {
-  label: string;
-  value: string | null;
-}
-
-type Phase = 'selectPort' | 'testing' | 'complete';
 
 // Test configurations
 const TEST_CONFIG = {
@@ -29,7 +14,7 @@ const TEST_CONFIG = {
   testContent: 'Test file from quick test',
   displayMessage: 'Quick Test Complete!',
   timeout: 10000,
-} as const;
+};
 
 const TEST_CODES = {
   hello: 'print("Hello M5Stack!")',
@@ -47,7 +32,7 @@ formats = [
     '{"platform":"M5Stack","version":"2.0.0","chipId":"ESP32-ABC123","flashSize":4194304}'
 ]
 for i, fmt in enumerate(formats):
-    print(f"Format {i+1}: {fmt}")
+    print("Format " + str(i+1) + ": " + fmt)
 `,
   dependencyTest: `
 # Test relative import simulation
@@ -57,7 +42,7 @@ test_imports = [
     "import absolute_module"
 ]
 for imp in test_imports:
-    print(f"Testing: {imp}")
+    print("Testing: " + imp)
 `,
   m5stackDisplay: `
 from m5stack import *
@@ -124,9 +109,10 @@ color_cycle = 0
 
 while True:
     # Update counter
-    counter.setText(f"Runtime: {count}s")
+    counter.setText("Runtime: " + str(count) + "s")
     
     # Animate progress bar
+    import math
     progress_width = int(290 * (math.sin(count * 0.1) + 1) / 2)
     lcd.rect(10, 145, 300, 8, 0x333333, 0x333333)  # Background
     lcd.rect(12, 147, progress_width, 4, 0x00FF88, 0x00FF88)  # Progress
@@ -153,79 +139,51 @@ while True:
     count += 1
     time.sleep(1)
 `,
-} as const;
-
-// Custom hooks
-const useTestResults = () => {
-  const [results, setResults] = useState<TestResult[]>([]);
-
-  const addResult = useCallback((icon: string, message: string, success: boolean = true) => {
-    setResults(prev => [...prev, { icon, message, success }]);
-  }, []);
-
-  const clearResults = useCallback(() => {
-    setResults([]);
-  }, []);
-
-  return { results, addResult, clearResults };
 };
 
-const usePortManager = () => {
-  const [ports, setPorts] = useState<PortItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+// Console utilities
+function log(icon, message, success = true) {
+  const color = success ? '\x1b[32m' : '\x1b[31m'; // Green or Red
+  const reset = '\x1b[0m';
+  console.log(`${color}${icon} ${message}${reset}`);
+}
 
-  const loadPorts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+function logInfo(message) {
+  console.log(`\x1b[36mℹ ${message}\x1b[0m`); // Cyan
+}
 
-    try {
-      const client = new M5StackClient();
-      const availablePorts = await client.listPorts();
-      const portItems: PortItem[] = availablePorts
-        .filter(port => port.path.includes('usbserial') || port.path.includes('COM'))
-        .map(port => ({
-          label: `${port.path} - ${port.manufacturer || 'Unknown'}`,
-          value: port.path
-        }));
+function logHeader(message) {
+  console.log(`\n\x1b[1m\x1b[33m${message}\x1b[0m`); // Bold Yellow
+}
 
-      if (portItems.length === 0) {
-        portItems.push({ label: '❌ No M5Stack devices found', value: null });
-      }
-
-      portItems.push({ label: '🔄 Refresh ports', value: 'refresh' });
-      portItems.push({ label: '❌ Exit', value: 'exit' });
-
-      setPorts(portItems);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setError(`Error loading ports: ${errorMessage}`);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { ports, loading, error, loadPorts };
-};
+function logDivider() {
+  console.log('\x1b[90m' + '─'.repeat(60) + '\x1b[0m'); // Gray
+}
 
 // Test runner class - comprehensive implementation testing
-class TestRunner {
-  private adapter: any;
-  private addResult: (icon: string, message: string, success?: boolean) => void;
-
-  constructor(adapter: any, addResult: (icon: string, message: string, success?: boolean) => void) {
+class ComprehensiveTestRunner {
+  constructor(adapter) {
     this.adapter = adapter;
-    this.addResult = addResult;
+    this.results = [];
+    this.successCount = 0;
+    this.totalTests = 0;
   }
 
-  async runConnectionTest(): Promise<void> {
+  addResult(icon, message, success = true) {
+    this.results.push({ icon, message, success });
+    if (success) this.successCount++;
+    this.totalTests++;
+    log(icon, message, success);
+  }
+
+  async runConnectionTest() {
     this.addResult('📡', 'Connecting to device...');
     await this.adapter.connect();
     await this.adapter.initialize();
     this.addResult('✅', 'Connected successfully!');
   }
 
-  async runPythonExecutionTest(): Promise<void> {
+  async runPythonExecutionTest() {
     this.addResult('🐍', 'Testing Python execution...');
     const result = await this.adapter.executeCode(TEST_CODES.hello);
     if (result.output.includes('Hello M5Stack!')) {
@@ -235,21 +193,21 @@ class TestRunner {
     }
   }
 
-  async runDeviceInfoParsingTest(): Promise<void> {
+  async runDeviceInfoParsingTest() {
     this.addResult('📊', 'Testing device info parsing...');
     
     // Test the new parseDeviceInfo implementation
     const testFormats = [
       'M5Stack:2.0.0:ESP32-ABC123:4194304:327680:AA:BB:CC:DD:EE:FF',
-      'platform=M5Stack\nversion=2.0.0\nchipId=ESP32-ABC123',
+      'platform=M5Stack\\nversion=2.0.0\\nchipId=ESP32-ABC123',
       '{"platform":"M5Stack","version":"2.0.0","chipId":"ESP32-ABC123"}'
     ];
 
     for (const [index, format] of testFormats.entries()) {
       try {
         // Mock the parseDeviceInfo method directly
-        const mockManager = { parseDeviceInfo: (input: string) => {
-          const lines = input.split('\n').map(line => line.trim()).filter(line => line);
+        const mockManager = { parseDeviceInfo: (input) => {
+          const lines = input.split('\\n').map(line => line.trim()).filter(line => line);
           let platform = 'M5Stack', version = '1.0.0', chipId = 'unknown';
           
           for (const line of lines) {
@@ -289,18 +247,18 @@ class TestRunner {
     }
   }
 
-  async runRelativeImportTest(): Promise<void> {
+  async runRelativeImportTest() {
     this.addResult('🔗', 'Testing relative import resolution...');
     
     // Test the new relative import resolution
     const mockAnalyzer = {
-      resolveModulePaths: (module: string, isRelative: boolean, currentFile?: string) => {
-        const paths: string[] = [];
+      resolveModulePaths: (module, isRelative, currentFile) => {
+        const paths = [];
         
         if (isRelative && currentFile) {
           const currentDir = currentFile.substring(0, currentFile.lastIndexOf('/'));
           if (module.includes('.')) {
-            const packagePath = module.replace(/\./g, '/');
+            const packagePath = module.replace(/\\./g, '/');
             paths.push(`${currentDir}/${packagePath}.py`);
           } else {
             paths.push(`${currentDir}/${module}.py`);
@@ -331,7 +289,7 @@ class TestRunner {
     }
   }
 
-  async runFileUploadTest(): Promise<void> {
+  async runFileUploadTest() {
     this.addResult('📤', 'Testing missing file upload simulation...');
     
     // Simulate the new uploadMissingDependencies functionality
@@ -348,12 +306,12 @@ try:
     os.makedirs('${dir}', exist_ok=True)
     print('Directory created: ${dir}')
 except Exception as e:
-    print(f'Error: {e}')
+    print('Error: ' + str(e))
 `);
         }
         
         // Simulate file upload
-        const content = `# Auto-uploaded dependency: ${dep}\nprint("${dep} loaded")`;
+        const content = `# Auto-uploaded dependency: ${dep}\\nprint("${dep} loaded")`;
         await this.adapter.writeFile(`/${dep}`, content);
         this.addResult('✅', `Uploaded: ${dep}`);
       } catch (error) {
@@ -362,7 +320,7 @@ except Exception as e:
     }
   }
 
-  async runCLIConnectionTest(): Promise<void> {
+  async runCLIConnectionTest() {
     this.addResult('🔌', 'Testing CLI connection functionality...');
     
     // Test the new CLI connect implementation
@@ -395,7 +353,7 @@ except Exception as e:
     }
   }
 
-  async runProjectDependencyTest(): Promise<void> {
+  async runProjectDependencyTest() {
     this.addResult('🔍', 'Testing project dependency analysis...');
     
     // Create a test project structure
@@ -488,7 +446,7 @@ sys.path.append('/project')
 try:
     exec(open('/project/main.py').read())
 except Exception as e:
-    print(f"Execution error: {e}")
+    print("Execution error: " + str(e))
 `);
       
       this.addResult('✅', 'Project dependency test completed');
@@ -497,7 +455,7 @@ except Exception as e:
     }
   }
 
-  async runSystemInfoTest(): Promise<void> {
+  async runSystemInfoTest() {
     this.addResult('📊', 'Getting system info...');
     const result = await this.adapter.executeCode(TEST_CODES.systemInfo);
     this.addResult('✅', 'System info retrieved');
@@ -516,7 +474,7 @@ except Exception as e:
     }
   }
 
-  async runFileOperationsTest(): Promise<void> {
+  async runFileOperationsTest() {
     this.addResult('📁', 'Testing file operations...');
     
     try {
@@ -578,7 +536,7 @@ else:
           // Check for common issues
           if (readContentStr.length === 0) {
             this.addResult('❌', 'File operations failed: Read content is empty', false);
-          } else if (readContentStr.endsWith('\n') && readContentStr.slice(0, -1) === expectedContentStr) {
+          } else if (readContentStr.endsWith('\\n') && readContentStr.slice(0, -1) === expectedContentStr) {
             this.addResult('✅', 'File operations work! (extra newline)');
           } else {
             this.addResult('❌', `File content mismatch. Expected: "${expectedContentStr}", Got: "${readContentStr}"`, false);
@@ -590,7 +548,7 @@ else:
     }
   }
 
-  async runDirectoryListTest(): Promise<void> {
+  async runDirectoryListTest() {
     this.addResult('📋', 'Listing files...');
     const files = await this.adapter.listDirectory('/');
     this.addResult('✅', `Found ${files.length} files/directories`);
@@ -604,7 +562,7 @@ else:
     }
   }
 
-  async runM5StackFeaturesTest(): Promise<void> {
+  async runM5StackFeaturesTest() {
     this.addResult('🎮', 'Testing M5Stack features...');
     try {
       await this.adapter.executeCode(TEST_CODES.m5stackDisplay);
@@ -614,15 +572,15 @@ else:
     }
   }
 
-  async runCleanupTest(): Promise<void> {
+  async runCleanupTest() {
     this.addResult('🧹', 'Cleaning up test files...');
     
     // Clean up all test files
     const cleanupCommands = [
       TEST_CODES.cleanup,
-      'import os; [os.remove(f"/project/{f}") for f in ["main.py", "utils.py", "models.py"] if os.path.exists(f"/project/{f}")]',
+      'import os; [os.remove("/project/" + f) for f in ["main.py", "utils.py", "models.py"] if os.path.exists("/project/" + f)]',
       'import os; os.rmdir("/project") if os.path.exists("/project") else None',
-      'import os; [os.remove(f"/{f}") for f in ["utils.py", "config.py"] if os.path.exists(f"/{f}")]',
+      'import os; [os.remove("/" + f) for f in ["utils.py", "config.py"] if os.path.exists("/" + f)]',
       'import os; os.rmdir("/helpers") if os.path.exists("/helpers") else None'
     ];
     
@@ -637,14 +595,14 @@ else:
     this.addResult('✅', 'Test files cleaned up');
   }
 
-  async runPersistenceTest(): Promise<void> {
+  async runPersistenceTest() {
     this.addResult('💾', 'Creating persistent app...');
     await this.adapter.writeFile('/main.py', TEST_CODES.persistentApp);
     this.addResult('✅', 'Persistent app saved to main.py');
     this.addResult('🔄', 'App will start automatically on device reset');
   }
 
-  async runComprehensiveTest(): Promise<void> {
+  async runComprehensiveTest() {
     this.addResult('🚀', 'Starting comprehensive implementation test...');
     
     const tests = [
@@ -663,142 +621,95 @@ else:
       () => this.runPersistenceTest(),
     ];
 
-    let successCount = 0;
-    let totalTests = 0;
-
     for (const test of tests) {
       try {
-        totalTests++;
         await test();
-        successCount++;
       } catch (error) {
         this.addResult('❌', `Test failed: ${error}`, false);
       }
+      console.log(''); // Add spacing between tests
     }
 
-    this.addResult('🎉', `Comprehensive test completed: ${successCount}/${totalTests} tests passed`);
+    logDivider();
+    this.addResult('🎉', `Comprehensive test completed: ${this.successCount}/${this.totalTests} tests passed`);
     this.addResult('📊', 'All new implementations have been tested!');
+    
+    if (this.successCount === this.totalTests) {
+      logInfo('🎊 Perfect score! All enhanced features are working correctly.');
+      logInfo('💎 The M5Stack device now displays animated UI with comprehensive status.');
+    }
   }
 
-  async runAllTests(): Promise<void> {
+  async runAllTests() {
     await this.runComprehensiveTest();
   }
 }
 
-// Components
-const ErrorDisplay: React.FC<{ error: string }> = ({ error }) => (
-  <Box flexDirection="column">
-    <Text color="red">❌ {error}</Text>
-  </Box>
-);
+// Port management
+async function loadPorts() {
+  const client = new M5StackClient();
+  const availablePorts = await client.listPorts();
+  return availablePorts
+    .filter(port => port.path.includes('usbserial') || port.path.includes('COM'))
+    .map(port => ({
+      label: `${port.path} - ${port.manufacturer || 'Unknown'}`,
+      value: port.path
+    }));
+}
 
-const LoadingSpinner: React.FC = () => (
-  <Box marginBottom={1}>
-    <Text color="green">
-      <Spinner type="dots" /> Loading ports...
-    </Text>
-  </Box>
-);
+// Auto port selection (avoids readline issues)
+async function selectPort() {
+  logHeader('🔧 M5Stack SDK Comprehensive Test Suite');
+  console.log('Testing all new implementations: Device info parsing, relative imports, file upload, CLI connection\n');
 
-const PortSelector: React.FC<{
-  ports: PortItem[];
-  onSelect: (item: PortItem) => void;
-}> = ({ ports, onSelect }) => (
-  <Box flexDirection="column">
-    <Box marginBottom={1}>
-      <Text>Select a device to test:</Text>
-    </Box>
-    <SelectInput items={ports} onSelect={onSelect} />
-  </Box>
-);
+  try {
+    logInfo('Loading available ports...');
+    const ports = await loadPorts();
 
-const TestResults: React.FC<{
-  results: TestResult[];
-  phase: Phase;
-}> = ({ results, phase }) => (
-  <Box flexDirection="column">
-    {results.map((result, index) => (
-      <Box key={index}>
-        <Text color={result.success ? 'green' : 'red'}>
-          {result.icon} {result.message}
-        </Text>
-      </Box>
-    ))}
-    {phase === 'complete' && (
-      <Box marginTop={1}>
-        <Text dimColor>Press Ctrl+C to exit</Text>
-      </Box>
-    )}
-  </Box>
-);
-
-const AppHeader: React.FC = () => (
-  <Box marginBottom={1} flexDirection="column">
-    <Text bold color="cyan">🔧 M5Stack SDK Comprehensive Test Suite</Text>
-    <Text dimColor>Testing all new implementations: Device info parsing, relative imports, file upload, CLI connection</Text>
-  </Box>
-);
-
-// Main component
-const QuickTest = () => {
-  const { exit } = useApp();
-  const [phase, setPhase] = useState<Phase>('selectPort');
-  const { ports, loading, error, loadPorts } = usePortManager();
-  const { results, addResult, clearResults } = useTestResults();
-
-  useEffect(() => {
-    loadPorts();
-  }, [loadPorts]);
-
-  const runTests = useCallback(async (port: string) => {
-    setPhase('testing');
-    clearResults();
-
-    let adapter: typeof REPLAdapter = null;
-    const testRunner = new TestRunner(adapter, addResult);
-
-    try {
-      adapter = new REPLAdapter(port);
-      testRunner.adapter = adapter;
-      await testRunner.runAllTests();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      addResult('❌', `Error: ${errorMessage}`, false);
-    } finally {
-      if (adapter) {
-        await adapter.disconnect();
-        addResult('📡', 'Disconnected');
-      }
-      setPhase('complete');
+    if (ports.length === 0) {
+      console.log('❌ No M5Stack devices found');
+      process.exit(1);
     }
-  }, [addResult, clearResults]);
 
-  const handlePortSelect = useCallback(async (item: PortItem) => {
-    if (item.value === 'exit') {
-      exit();
-    } else if (item.value === 'refresh') {
-      await loadPorts();
-    } else if (item.value) {
-      await runTests(item.value);
-    }
-  }, [exit, loadPorts, runTests]);
+    console.log('\nAvailable M5Stack devices:');
+    ports.forEach((port, index) => {
+      console.log(`  ${index + 1}. ${port.label}`);
+    });
 
-  if (error) {
-    return <ErrorDisplay error={error} />;
+    // Auto-select the first available port for streamlined testing
+    const selectedPort = ports[0].value;
+    logInfo(`Auto-selecting: ${ports[0].label}`);
+    
+    return selectedPort;
+
+  } catch (error) {
+    throw error;
   }
+}
 
-  return (
-    <Box flexDirection="column">
-      <AppHeader />
-      {loading && <LoadingSpinner />}
-      {phase === 'selectPort' && !loading && (
-        <PortSelector ports={ports} onSelect={handlePortSelect} />
-      )}
-      {(phase === 'testing' || phase === 'complete') && (
-        <TestResults results={results} phase={phase} />
-      )}
-    </Box>
-  );
-};
+// Main function
+async function main() {
+  try {
+    const port = await selectPort();
+    logDivider();
+    logInfo(`Using port: ${port}`);
+    logDivider();
 
-render(<QuickTest />);
+    const adapter = new REPLAdapter(port);
+    const testRunner = new ComprehensiveTestRunner(adapter);
+
+    await testRunner.runAllTests();
+
+    await adapter.disconnect();
+    log('📡', 'Disconnected');
+    
+    logDivider();
+    logInfo('Press Ctrl+C to exit');
+    
+  } catch (error) {
+    log('❌', `Error: ${error.message}`, false);
+    process.exit(1);
+  }
+}
+
+main();

@@ -28,12 +28,8 @@ Thumbs.db
 quick-test-backup*.json
 *-backup-*.json
 
-# Test files
-*.test.ts
-*.test.js
-*.spec.ts
-*.spec.js
-jest.config.js
+# Test coverage output
+coverage/
 
 # Lock files (using pnpm)
 package-lock.json

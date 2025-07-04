@@ -5,8 +5,8 @@
  */
 
 import fs from 'fs';
-import { REPLAdapter } from './adapters/REPLAdapter.js';
-import { M5StackClient } from './index.js';
+import { REPLAdapter } from './adapters/REPLAdapter';
+import { M5StackClient } from './index';
 
 const DEFAULT_PORT = '/dev/tty.usbserial-55520ADC16';
 
@@ -139,15 +139,55 @@ class M5StackCLI {
   }
 
   async connect(port: string = DEFAULT_PORT): Promise<void> {
-    return this.withConnection(port, async () => {
-      // Connection test
+    return this.withConnection(port, async (adapter) => {
+      // Perform connection test
+      console.log('Testing connection...');
+      
+      // Test basic communication
+      const testCode = 'print("Connection test successful")';
+      const result = await adapter.executeCode(testCode);
+      
+      if (result.error) {
+        console.error('Connection test failed:', result.error);
+        throw new Error(`Connection test failed: ${result.error}`);
+      }
+      
+      console.log('Connection test result:', result.output.trim());
+      
+      // Test device info retrieval
+      try {
+        const deviceInfo = await adapter.getDeviceInfo();
+        console.log('Device info retrieved:');
+        console.log(`  Platform: ${deviceInfo.platform}`);
+        console.log(`  Version: ${deviceInfo.version}`);
+        console.log(`  Chip ID: ${deviceInfo.chipId}`);
+        if (deviceInfo.macAddress) {
+          console.log(`  MAC Address: ${deviceInfo.macAddress}`);
+        }
+      } catch (error) {
+        console.warn('Failed to retrieve device info:', error);
+      }
+      
+      // Test file system access
+      try {
+        const rootDir = await adapter.listDirectory('/');
+        console.log(`File system accessible (${rootDir.length} items in root)`);
+      } catch (error) {
+        console.warn('Failed to access file system:', error);
+      }
+      
+      console.log('Connection established successfully!');
     });
   }
 
   async execWithConnection(port: string, code: string): Promise<void> {
     return this.withConnection(port, async (adapter) => {
       const result = await adapter.executeCode(code);
-      console.log(result.output.trim());
+      if (result.error) {
+        console.error('Error:', result.error);
+      } else {
+        console.log(result.output.trim());
+      }
     });
   }
 
@@ -302,14 +342,21 @@ Examples:
 }
 
 // Check if this is the main module
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const cli = new M5StackCLI();
-  // Remove first two args (node and script path)
-  const args = process.argv.slice(2);
-  cli.run(args).catch((error) => {
-    console.error('Error:', error instanceof Error ? error.message : String(error));
-    process.exit(1);
-  });
+// Skip this check during Jest testing
+if (process.env.NODE_ENV !== 'test' && typeof process !== 'undefined' && process.argv) {
+  // In a real module environment, use require.main for ES compatibility
+  const isMainModule = require.main === module || 
+    (typeof __filename !== 'undefined' && process.argv[1] === __filename);
+  
+  if (isMainModule) {
+    const cli = new M5StackCLI();
+    // Remove first two args (node and script path)
+    const args = process.argv.slice(2);
+    cli.run(args).catch((error) => {
+      console.error('Error:', error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    });
+  }
 }
 
 export { M5StackCLI };

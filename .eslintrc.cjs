@@ -14,6 +14,13 @@ module.exports = module.exports = {
     'plugin:@typescript-eslint/recommended',              // TypeScript 推奨ルール
     // 'plugin:@typescript-eslint/recommended-requiring-type-checking', // 型チェック必須ルール
   ],
+  ignorePatterns: [
+    '**/*.test.ts',
+    '**/*.test.js',
+    'test-implementations.ts',
+    'dist/',
+    'node_modules/',
+  ],
   rules: {
     // 型安全性を向上させる追加ルール例
     '@typescript-eslint/explicit-function-return-type': 'warn',

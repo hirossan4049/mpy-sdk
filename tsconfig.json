@@ -34,7 +34,8 @@
     "allowUnreachableCode": false,
     "exactOptionalPropertyTypes": false,
     "types": [
-      "node"
+      "node",
+      "jest"
     ]
   },
   "include": [
@@ -42,8 +43,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "dist"
   ]
 }
