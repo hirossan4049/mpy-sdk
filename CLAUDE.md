@@ -10,42 +10,44 @@ This is the @hirossan4049/mpy-sdk package - a multi-platform SDK for M5Stack Mic
 
 ### Build and Development
 
+**Package Manager: pnpm**
+
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Build all targets (Node.js, Browser, Types)
-npm run build
+pnpm build
 
 # Build for specific platform
-npm run build:node     # CommonJS for Node.js
-npm run build:browser  # UMD bundle for browsers
-npm run build:types    # TypeScript definitions
+pnpm build:node     # CommonJS for Node.js
+pnpm build:browser  # UMD bundle for browsers
+pnpm build:types    # TypeScript definitions
 
 # Development build (quick Node.js only)
-npm run dev
+pnpm dev
 
 # Linting
-npm run lint
-npm run lint:fix
+pnpm lint
+pnpm lint:fix
 
 # Clean build artifacts
-npm run clean
+pnpm clean
 ```
 
 ### Testing and Examples
 
 ```bash
 # Quick connection test
-npm run quick-test
+pnpm quick-test
 
 # Interactive CLI tool
-npm run cli
+pnpm cli
 
 # Run examples
-npm run demo      # REPL adapter example
-npm run example   # Basic usage example
-npm run persist   # Firmware persistence example
+pnpm demo      # REPL adapter example
+pnpm example   # Basic usage example
+pnpm persist   # Firmware persistence example
 ```
 
 ## Architecture Overview

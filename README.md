@@ -16,13 +16,13 @@ MicroPython SDK for M5Stack devices - Universal serial communication library for
 ## Installation
 
 ```bash
-npm install @hirossan4049/mpy-sdk
+pnpm add @hirossan4049/mpy-sdk
 ```
 
 For Node.js environments, you'll also need the serialport dependency:
 
 ```bash
-npm install serialport
+pnpm add serialport
 ```
 
 ## Quick Start
@@ -32,17 +32,17 @@ For a simple connection test:
 
 ```bash
 # First time setup: install dependencies
-npm install
+pnpm install
 
 # Run quick test (builds automatically)
-npm run quick-test
+pnpm quick-test
 ```
 
 ### Interactive CLI
 Start the interactive command line interface:
 
 ```bash
-npm run cli
+pnpm cli
 ```
 
 ### Testing & Examples
@@ -50,16 +50,16 @@ Run examples for testing functionality:
 
 ```bash
 # Quick connection test - validates basic functionality
-npm run quick-test
+pnpm quick-test
 
 # REPL adapter example with M5Stack features
-npm run demo
+pnpm demo
 
 # Basic SDK usage example
-npm run example
+pnpm example
 
 # Firmware persistence example
-npm run persist
+pnpm persist
 ```
 
 ### Basic Usage
@@ -316,7 +316,7 @@ print("Device ready")
 #### CLI Persistence Commands
 
 ```bash
-npm run cli
+pnpm cli
 
 # In CLI:
 M5Stack> connect

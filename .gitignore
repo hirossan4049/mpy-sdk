@@ -30,7 +30,6 @@ quick-test*.json
 *.test.js
 jest.config.js
 
-# Lock files (using npm)
+# Lock files (using pnpm)
 package-lock.json
-pnpm-lock.yaml
 yarn.lock
