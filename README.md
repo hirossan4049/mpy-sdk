@@ -10,6 +10,7 @@ MicroPython SDK for M5Stack devices - Node.js serial communication library.
 - 🐍 **Python Execution**: Execute Python code and scripts remotely
 - 📊 **Progress Tracking**: Real-time progress updates for file transfers
 - 🔄 **Auto Retry**: Built-in retry logic for reliable communication
+- 🌐 **Browser Ready**: Supports Chrome's Web Serial API for web apps
 - 🧩 **Dependency Analysis**: Analyze Python imports and dependencies
 - 📱 **Cross-OS**: Works on Windows, macOS, and Linux
 
@@ -234,8 +235,11 @@ import { M5StackClient } from '@hirossan4049/mpy-sdk';
 ### Browser (Web Serial API)
 
 ```typescript
-import { M5StackClient } from '@hirossan4049/mpy-sdk/browser';
-// Uses Web Serial API
+import { M5StackClient, WebSerialConnection } from '@hirossan4049/mpy-sdk/browser';
+
+const port = await WebSerialConnection.requestPort();
+const client = new M5StackClient();
+const connection = await client.connect(port);
 ```
 
 ### React Native
