@@ -318,28 +318,23 @@ with open('${path}', 'rb') as f:
         for (let i = 0; i < hexData.length; i += maxHexSize) {
           const chunk = hexData.slice(i, i + maxHexSize);
           const mode = i === 0 ? 'wb' : 'ab'; // First chunk creates file, others append
-          const chunkCommand = `
-import binascii
-with open('${path}', '${mode}') as f:
-    f.write(binascii.unhexlify('${chunk}'))
-print('Chunk written')
-`;
-          await this.connection.sendREPLCommand(chunkCommand.trim());
+          
+          // Write using sequential commands for better reliability
+          await this.connection.sendREPLCommand('import binascii');
+          await this.connection.sendREPLCommand(`f = open('${path}', '${mode}')`);
+          await this.connection.sendREPLCommand(`f.write(binascii.unhexlify('${chunk}'))`);
+          await this.connection.sendREPLCommand('f.close()');
 
           if (options?.onProgress) {
             options.onProgress(Math.min(i + maxHexSize, hexData.length) / 2, totalBytes);
           }
         }
       } else {
-        // Write file using MicroPython for small files
-        const command = `
-import binascii
-with open('${path}', 'wb') as f:
-    f.write(binascii.unhexlify('${hexData}'))
-print('File written successfully')
-`;
-
-        await this.connection.sendREPLCommand(command.trim());
+        // Write file using sequential commands for small files
+        await this.connection.sendREPLCommand('import binascii');
+        await this.connection.sendREPLCommand(`f = open('${path}', 'wb')`);
+        await this.connection.sendREPLCommand(`f.write(binascii.unhexlify('${hexData}'))`);
+        await this.connection.sendREPLCommand('f.close()');
 
         if (options?.onProgress) {
           options.onProgress(totalBytes, totalBytes);
