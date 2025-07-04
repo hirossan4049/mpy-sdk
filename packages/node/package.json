@@ -1,0 +1,17 @@
+{
+  "name": "@h1mpy-sdk/node",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "dependencies": {
+    "@h1mpy-sdk/core": "workspace:^1.0.0",
+    "serialport": "^13.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}

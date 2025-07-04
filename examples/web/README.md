@@ -1,29 +1,29 @@
 # M5Stack Web Serial Example
 
-This example demonstrates how to use the @hirossan4049/mpy-sdk in a web browser using the Web Serial API.
+This example demonstrates how to use the `@h1mpy-sdk/web` package to communicate with M5Stack devices using the Web Serial API in a browser environment.
 
 ## Features
 
 - 🔌 **Web Serial Connection**: Connect to M5Stack devices directly from the browser
-- 💻 **Code Editor**: Write and execute Python code in real-time
-- 📁 **File Management**: Upload, download, and delete files on the device
-- 🎨 **Sample Code**: Flash pre-built sample applications
-- 📱 **Device Information**: View device details and system info
-- 🖥️ **Console Output**: Real-time output from code execution
+- 📄 **File Management**: Upload, list, and manage files on the device with correct file sizes
+- 🐍 **Code Execution**: Execute Python code remotely on the M5Stack
+- 📊 **Progress Tracking**: Real-time progress updates for file transfers
+- 🎨 **Interactive UI**: Clean, responsive interface for device interaction
+- 📱 **Sample Programs**: Pre-built examples for LCD, sensors, and basic functionality
+- ✅ **Enhanced REPL Parsing**: Improved output parsing for device info and file operations
+- 🔧 **Bug Fixes**: Fixed device info display and file size reporting
 
-## Requirements
+## Browser Requirements
 
-- Modern browser with Web Serial API support:
-  - Chrome 89+
-  - Edge 89+
-  - Opera 76+
-- M5Stack device with MicroPython firmware
-- USB connection
+- Chrome 89+ or Edge 89+
+- Web Serial API must be enabled (usually enabled by default)
+- HTTPS required for production deployment
 
-## Getting Started
+## Quick Start
 
 1. **Install dependencies**:
    ```bash
+   cd examples/web
    pnpm install
    ```
 
@@ -32,111 +32,137 @@ This example demonstrates how to use the @hirossan4049/mpy-sdk in a web browser 
    pnpm dev
    ```
 
-3. **Open in browser**:
-   - The example will automatically open at `http://localhost:3000`
-   - Make sure your M5Stack device is connected via USB
-
-4. **Connect to your device**:
+3. **Open your browser**:
+   - Navigate to `http://localhost:3000`
    - Click "Connect to M5Stack"
-   - Select your device from the browser's serial port dialog
-   - The interface will update once connected
+   - Select your M5Stack device from the serial port dialog
 
 ## Usage
 
-### Basic Operations
+### 1. Connect to Device
+- Click the "Connect to M5Stack" button
+- Select your M5Stack device from the browser's serial port picker
+- Wait for the connection to establish
 
-1. **Connect**: Click "Connect to M5Stack" and select your device
-2. **Device Info**: View device information and system details
-3. **List Files**: See all files on the device's flash memory
-4. **Execute Code**: Write Python code and run it on the device
-5. **Save Files**: Save your code as `main.py` on the device
-6. **Flash Sample**: Upload and run a pre-built sample application
+### 2. Device Information
+- Once connected, device information is automatically retrieved
+- Click "Get Device Info" to refresh device details
 
-### Code Editor
+### 3. File Operations
+- **List Files**: View all files on the device's flash memory
+- **Upload Files**: Select local files (.py, .txt, .json) to upload
+- **Progress Tracking**: Monitor upload progress in real-time
 
-The built-in code editor supports:
-- Syntax highlighting for Python
-- Real-time code execution
-- File saving to device
-- Sample code templates
+### 4. Code Execution
+- Write Python code in the text area
+- Click "Execute Code" to run it on the M5Stack
+- View output and error messages in the result area
 
-### File Management
+### 5. Sample Programs
+- **Hello World**: Basic greeting and LCD test
+- **LCD Demo**: Color cycling and display functions
+- **Sensor Demo**: Read and display accelerometer/gyro data
 
-- **Download**: Save device files to your computer
-- **Delete**: Remove files from the device
-- **Upload**: Save editor content as files on the device
+## API Usage
 
-## Example Code
-
-The example includes a sample M5Stack program that demonstrates:
-- LCD display control
-- Random color generation
-- Button input handling
-- Animation loops
-- Text rendering
-
-## Web Serial API
-
-This example uses the Web Serial API to communicate with M5Stack devices:
+The example uses the `@h1mpy-sdk/web` package:
 
 ```javascript
-// Connect to device
-const port = await navigator.serial.requestPort();
+import { M5StackClient, WebSerialConnection } from '@h1mpy-sdk/web';
+
+// Create client
+const client = new M5StackClient({
+  timeout: 10000,
+  logLevel: 'info'
+});
+
+// Request and connect to port
+const port = await WebSerialConnection.requestPort();
 const connection = await client.connect(port);
 
 // Execute code
-const result = await connection.executeCode('print("Hello M5Stack!")');
+const result = await connection.executeCode('print("Hello!")');
 
-// File operations
-await connection.writeFile('/flash/main.py', code);
-const files = await connection.listDirectory('/flash');
+// Upload file
+await connection.writeFile('/flash/main.py', 'print("Hello World!")', {
+  onProgress: (bytesWritten, totalBytes) => {
+    console.log(`Upload: ${(bytesWritten / totalBytes * 100).toFixed(1)}%`);
+  }
+});
 ```
 
-## Browser Compatibility
+## Deployment
 
-| Browser | Version | Support |
-|---------|---------|---------|
-| Chrome  | 89+     | ✅ Full |
-| Edge    | 89+     | ✅ Full |
-| Opera   | 76+     | ✅ Full |
-| Firefox | -       | ❌ Not supported |
-| Safari  | -       | ❌ Not supported |
+For production deployment:
 
-## Security Notes
+1. **Build the application**:
+   ```bash
+   pnpm build
+   ```
 
-- Web Serial API requires HTTPS in production (localhost works for development)
-- Users must explicitly grant permission to access serial ports
-- Each session requires re-selecting the device
+2. **Deploy the `dist` directory** to your web server
+
+3. **Ensure HTTPS**: Web Serial API requires HTTPS in production
 
 ## Troubleshooting
 
+### Web Serial API Not Supported
+- Ensure you're using Chrome 89+ or Edge 89+
+- Check that Web Serial API is enabled in browser flags
+- For development, enable: `chrome://flags/#enable-experimental-web-platform-features`
+
 ### Connection Issues
+- Verify the M5Stack device is powered on and running MicroPython
+- Check that no other applications are using the serial port
+- Try reconnecting the USB cable
 
-1. **Device not detected**: Make sure the M5Stack is connected via USB and running MicroPython
-2. **Permission denied**: Check that no other applications are using the serial port
-3. **Timeout errors**: Increase timeout in the client configuration
-
-### Browser Issues
-
-1. **Web Serial not supported**: Use Chrome 89+ or Edge 89+
-2. **HTTPS required**: Use HTTPS in production or localhost for development
-3. **Port access denied**: Grant permission in the browser's serial port dialog
+### File Upload Failures
+- Ensure the target directory exists on the device
+- Check file permissions and available space
+- Verify the file content is valid for the target format
 
 ## Development
 
-To modify this example:
+The example is built with:
+- **Vite**: Fast development server and build tool
+- **Vanilla JavaScript**: No framework dependencies
+- **ES Modules**: Modern JavaScript module system
 
-1. **Edit the UI**: Modify `index.html` and CSS styles
-2. **Update logic**: Edit `main.js` for connection and device interaction
-3. **Add features**: Extend the example with additional SDK functionality
-4. **Build**: Run `pnpm build` to create a production build
+### Project Structure
 
-## Related Examples
+```
+examples/web/
+├── index.html          # Main HTML interface
+├── main.js             # Application logic
+├── package.json        # Dependencies and scripts
+├── vite.config.js      # Vite configuration
+└── README.md          # This file
+```
 
-- [Node.js Examples](../): Server-side M5Stack development
-- [Basic Usage](../basic-usage.js): Simple SDK usage
-- [REPL Adapter](../repl-adapter-example.js): Interactive development
+### Extending the Example
+
+To add new features:
+
+1. **Add UI elements** to `index.html`
+2. **Implement functionality** in `main.js`
+3. **Use the SDK API** from `@h1mpy-sdk/web`
+
+Example of adding a new feature:
+
+```javascript
+// Add to main.js
+async resetDevice() {
+  if (!this.connection) return;
+  
+  try {
+    await this.connection.executeCode('import machine; machine.reset()');
+    this.log('🔄 Device reset initiated', 'info');
+  } catch (error) {
+    this.log(`❌ Reset failed: ${error.message}`, 'error');
+  }
+}
+```
 
 ## License
 
-MIT License - see the main project LICENSE file for details.
+This example is part of the @h1mpy-sdk project and is licensed under the MIT License.

@@ -3,19 +3,32 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   server: {
     port: 3000,
-    open: true,
-    https: false, // Web Serial API works over HTTPS or localhost
+    host: true,
+    fs: {
+      // Allow serving files from parent directories
+      allow: ['..', '../..']
+    }
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    target: 'es2022',
+    lib: false,
+    rollupOptions: {
+      input: {
+        main: './index.html'
+      }
+    }
   },
   resolve: {
     alias: {
-      '@hirossan4049/mpy-sdk/browser': '../../dist/browser/browser.js'
+      '@h1mpy-sdk/web': '../../packages/web/src/index.ts',
+      '@h1mpy-sdk/core': '../../packages/core/src/index.ts'
     }
   },
   optimizeDeps: {
-    include: ['@hirossan4049/mpy-sdk']
+    exclude: ['@h1mpy-sdk/web', '@h1mpy-sdk/core', 'serialport', 'events']
+  },
+  define: {
+    global: 'globalThis',
   }
 });
