@@ -32,8 +32,8 @@
     "demo": "pnpm build:node && node examples/repl-adapter-example.js",
     "example": "pnpm build:node && node examples/basic-usage.js",
     "tui": "node --import tsx/esm --no-warnings tools/tui.tsx",
-    "cli": "node --import tsx/esm --no-warnings tools/tui.tsx",
-    "cli:legacy": "pnpm build:node && node tools/cli.js",
+    "cli": "tsx src/cli.ts",
+    "cli:tui": "node --import tsx/esm --no-warnings tools/tui.tsx",
     "persist": "pnpm build:node && node examples/firmware-persistence.js",
     "prepublishOnly": "pnpm clean && pnpm build && pnpm quick-test"
   },
