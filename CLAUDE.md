@@ -43,16 +43,25 @@ pnpm clean
 ### Testing and Examples
 
 ```bash
+# Unit tests
+pnpm test              # Run all tests
+pnpm test:watch        # Run tests in watch mode
+pnpm test:coverage     # Run tests with coverage
+
 # Quick connection test
 pnpm quick-test
 
-# Interactive CLI tool
-pnpm cli
+# Interactive CLI tools
+pnpm cli               # Interactive CLI with TypeScript
+pnpm cli:tui           # Terminal UI version
 
 # Run examples
-pnpm demo      # REPL adapter example
-pnpm example   # Basic usage example
-pnpm persist   # Firmware persistence example
+pnpm demo              # REPL adapter example
+pnpm example           # Basic usage example
+pnpm persist           # Firmware persistence example
+pnpm flash-sample      # Flash sample programs
+pnpm flash-simple      # Flash simple program
+pnpm flash-advanced    # Flash advanced program
 ```
 
 ## Architecture Overview
@@ -174,6 +183,9 @@ The SDK builds to two targets:
 **Development**: Standard TypeScript toolchain
 - TypeScript, ESLint, Prettier
 - Type definitions for Node.js and serialport
+- Jest for testing with ts-jest preset
+- tsx for TypeScript execution
+- ink for terminal UI components
 
 ## Important Development Rules
 
@@ -197,3 +209,10 @@ The SDK builds to two targets:
 - Check file existence before read operations
 - Handle chunk transfer progress for large files
 - Validate file content encoding in REPL mode
+
+### 5. Testing
+- Tests are located in `src/` directory as `*.test.ts` files
+- Use Jest with ts-jest preset for TypeScript support
+- Test environment is Node.js with 5-second timeout
+- Run `pnpm test` to execute all tests
+- Mock serial connections for testing without hardware

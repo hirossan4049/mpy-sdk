@@ -43,11 +43,20 @@ pnpm cli
 ```
 
 ### Testing & Examples
-Run examples for testing functionality:
+Run examples and tests for functionality:
 
 ```bash
+# Unit tests
+pnpm test              # Run all tests
+pnpm test:watch        # Run tests in watch mode
+pnpm test:coverage     # Run tests with coverage
+
 # Quick connection test - validates basic functionality
 pnpm quick-test
+
+# Interactive CLI tools
+pnpm cli               # Interactive CLI with TypeScript
+pnpm cli:tui           # Terminal UI version
 
 # REPL adapter example with M5Stack features
 pnpm demo
@@ -57,6 +66,11 @@ pnpm example
 
 # Firmware persistence example
 pnpm persist
+
+# Flash sample programs
+pnpm flash-sample      # Flash sample programs
+pnpm flash-simple      # Flash simple program
+pnpm flash-advanced    # Flash advanced program
 ```
 
 ### Basic Usage
@@ -373,7 +387,7 @@ const DEFAULT_CONFIG = {
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/new-feature`
 3. Make your changes and validate with examples
-4. Test functionality: `npm run quick-test`
+4. Test functionality: `pnpm test && pnpm quick-test`
 5. Submit a pull request
 
 ## License
@@ -385,8 +399,42 @@ MIT License. See [LICENSE](LICENSE) for details.
 - [vscode-m5stack-mpy](https://github.com/curdeveryday/vscode-m5stack-mpy) - VS Code extension using this library
 - [M5Stack](https://m5stack.com/) - Official M5Stack hardware and software
 
+## Development
+
+### Build Commands
+
+```bash
+# Install dependencies (required: pnpm)
+pnpm install
+
+# Build all targets
+pnpm build
+
+# Build specific components
+pnpm build:node     # CommonJS for Node.js
+pnpm build:types    # TypeScript definitions
+
+# Development build (quick Node.js only)
+pnpm dev
+
+# Code quality
+pnpm lint           # Run ESLint
+pnpm lint:fix       # Fix ESLint issues
+pnpm format         # Format code with Prettier
+pnpm format:check   # Check formatting
+
+# Clean build artifacts
+pnpm clean
+```
+
+### Requirements
+
+- Node.js >= 16.0.0
+- pnpm (required package manager)
+- M5Stack device with MicroPython firmware
+
 ## Support
 
-- 📖 [Documentation](https://github.com/m5stack/serial-client/docs)
-- 🐛 [Issue Tracker](https://github.com/m5stack/serial-client/issues)
-- 💬 [Discussions](https://github.com/m5stack/serial-client/discussions)
+- 📖 [Documentation](https://github.com/hirossan4049/mpy-sdk/docs)
+- 🐛 [Issue Tracker](https://github.com/hirossan4049/mpy-sdk/issues)
+- 💬 [Discussions](https://github.com/hirossan4049/mpy-sdk/discussions)
