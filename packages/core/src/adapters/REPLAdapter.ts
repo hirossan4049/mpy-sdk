@@ -168,19 +168,69 @@ export class REPLAdapter extends EventEmitter {
       const osInfo = await this.sendREPLCommand('os.uname()');
 
       await this.sendREPLCommand('import sys');
-      const platform = await this.sendREPLCommand('sys.platform');
+      const platformResult = await this.sendREPLCommand('sys.platform');
+      
+      // Extract platform from result
+      const platformLines = platformResult.trim().split('\n');
+      const platform = platformLines[platformLines.length - 1].replace(/'/g, '');
 
-      // Parse the os.uname() output
-      const match = osInfo.match(
+      // Parse the os.uname() output - extract the result line first
+      const osLines = osInfo.trim().split('\n');
+      const osResultLine = osLines[osLines.length - 1];
+      const match = osResultLine.match(
         /\(sysname='([^']+)', nodename='([^']+)', release='([^']+)', version='([^']+)', machine='([^']+)'\)/
       );
 
+      // Get hardware information
+      let flashSize = 0;
+      let ramSize = 0;
+      let macAddress = 'unknown';
+
+      try {
+        // Get flash size using esp module
+        await this.sendREPLCommand('import esp');
+        const flashSizeResult = await this.sendREPLCommand('esp.flash_size()');
+        // Extract result after the command line
+        const lines = flashSizeResult.trim().split('\n');
+        const resultLine = lines[lines.length - 1];
+        flashSize = parseInt(resultLine) || 0;
+      } catch (error) {
+        console.warn('Could not get flash size:', error);
+      }
+
+      try {
+        // Get free RAM using gc module
+        await this.sendREPLCommand('import gc');
+        const ramResult = await this.sendREPLCommand('gc.mem_free()');
+        // Extract result after the command line
+        const lines = ramResult.trim().split('\n');
+        const resultLine = lines[lines.length - 1];
+        ramSize = parseInt(resultLine) || 0;
+      } catch (error) {
+        console.warn('Could not get RAM size:', error);
+      }
+
+      try {
+        // Get MAC address using network module
+        await this.sendREPLCommand('import network');
+        await this.sendREPLCommand('wlan = network.WLAN(network.STA_IF)');
+        await this.sendREPLCommand('mac = wlan.config("mac")');
+        const macResult = await this.sendREPLCommand('":".join(["%02X" % b for b in mac])');
+        // Extract result after the command line
+        const lines = macResult.trim().split('\n');
+        const resultLine = lines[lines.length - 1];
+        macAddress = resultLine.replace(/'/g, '');
+      } catch (error) {
+        console.warn('Could not get MAC address:', error);
+      }
+
       return {
-        platform: platform.replace(/'/g, '') || 'esp32',
+        platform: platform || 'esp32',
         version: match ? match[3] : 'unknown',
         chipId: match ? match[2] : 'unknown',
-        flashSize: 0, // Would need custom command to determine
-        ramSize: 0, // Would need custom command to determine
+        flashSize: flashSize,
+        ramSize: ramSize,
+        macAddress: macAddress,
       };
     } catch (error) {
       throw new CommunicationError(`Failed to get device info: ${error}`);

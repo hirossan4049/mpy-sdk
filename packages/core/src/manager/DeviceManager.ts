@@ -468,7 +468,7 @@ except Exception as e:
         chipId,
         flashSize,
         ramSize,
-        macAddress,
+        macAddress: macAddress || 'unknown',
       };
     } catch (error) {
       console.warn(`Failed to parse device info: ${error}`);
@@ -479,6 +479,7 @@ except Exception as e:
         chipId: 'unknown',
         flashSize: 0,
         ramSize: 0,
+        macAddress: 'unknown',
       };
     }
   }

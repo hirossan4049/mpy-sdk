@@ -57,7 +57,7 @@ export interface DeviceInfo {
   chipId: string;
   flashSize: number;
   ramSize: number;
-  macAddress?: string;
+  macAddress: string;
 }
 
 export interface Command {

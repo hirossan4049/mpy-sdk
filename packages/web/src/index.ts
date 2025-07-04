@@ -128,8 +128,8 @@ class WebDeviceManager extends BrowserEventEmitter {
       this.emit('connect');
     });
     this.connection.on('disconnect', () => this.emit('disconnect'));
-    this.connection.on('error', (error) => this.emit('error', error));
-    this.connection.on('busy', (busy) => this.emit('busy', busy));
+    this.connection.on('error', (error: Error) => this.emit('error', error));
+    this.connection.on('busy', (busy: boolean) => this.emit('busy', busy));
   }
 
   async connect(): Promise<void> {
@@ -385,13 +385,47 @@ print('File written successfully')
         /\(sysname='([^']+)', nodename='([^']+)', release='([^']+)', version='([^']+)', machine='([^']+)'\)/
       );
 
+      // Get hardware information
+      let flashSize = 0;
+      let ramSize = 0;
+      let macAddress = 'unknown';
+
+      try {
+        // Get flash size using esp module
+        await this.connection.sendREPLCommand('import esp');
+        const flashSizeResult = await this.connection.sendREPLCommand('esp.flash_size()');
+        flashSize = parseInt(flashSizeResult.trim()) || 0;
+      } catch (error) {
+        console.warn('Could not get flash size:', error);
+      }
+
+      try {
+        // Get free RAM using gc module
+        await this.connection.sendREPLCommand('import gc');
+        const ramResult = await this.connection.sendREPLCommand('gc.mem_free()');
+        ramSize = parseInt(ramResult.trim()) || 0;
+      } catch (error) {
+        console.warn('Could not get RAM size:', error);
+      }
+
+      try {
+        // Get MAC address using network module
+        await this.connection.sendREPLCommand('import network');
+        await this.connection.sendREPLCommand('wlan = network.WLAN(network.STA_IF)');
+        await this.connection.sendREPLCommand('mac = wlan.config("mac")');
+        const macResult = await this.connection.sendREPLCommand('":".join(["%02X" % b for b in mac])');
+        macAddress = macResult.trim().replace(/'/g, '');
+      } catch (error) {
+        console.warn('Could not get MAC address:', error);
+      }
+
       return {
         platform: platform.replace(/'/g, '') || 'esp32',
         version: match ? match[3] : 'unknown',
         chipId: match ? match[2] : 'unknown',
-        flashSize: 0, // Would need custom command to determine
-        ramSize: 0, // Would need custom command to determine
-        macAddress: 'unknown' // Would need custom command to determine
+        flashSize: flashSize,
+        ramSize: ramSize,
+        macAddress: macAddress,
       };
     } catch (error) {
       console.error('Failed to get device info:', error);
@@ -554,7 +588,7 @@ export class M5StackClient extends BrowserEventEmitter {
         this.emit('disconnect', port);
       });
 
-      connection.on('error', (error) => {
+      connection.on('error', (error: Error) => {
         this.logger.error('Connection error:', error);
         this.emit('error', port, error);
       });

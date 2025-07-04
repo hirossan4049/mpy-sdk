@@ -176,7 +176,7 @@ export class WebSerialConnection extends BaseWebSerialConnection {
   private currentCommand?: {
     resolve: (value: string) => void;
     reject: (error: Error) => void;
-    timeout: number;
+    timeout: ReturnType<typeof setTimeout>;
   };
 
   constructor(port: WebSerialPort, options: ConnectionOptions = {}) {
@@ -185,7 +185,7 @@ export class WebSerialConnection extends BaseWebSerialConnection {
   }
 
   static isSupported(): boolean {
-    const nav = (globalThis as { navigator?: Record<string, unknown> }).navigator;
+    const nav = (globalThis as any)?.navigator;
     return typeof nav !== 'undefined' && 'serial' in nav;
   }
 

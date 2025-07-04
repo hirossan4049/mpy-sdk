@@ -9,7 +9,7 @@ import { CommandCode, DEFAULT_CONFIG, ProtocolFrame } from '../../core/src/types
 
 // Browser Buffer polyfill
 class BrowserBuffer {
-  private data: Uint8Array;
+  public data: Uint8Array;
 
   constructor(data: ArrayBuffer | Uint8Array | number[] | string) {
     if (typeof data === 'string') {
@@ -78,6 +78,7 @@ class BrowserBuffer {
   [Symbol.iterator]() {
     return this.data[Symbol.iterator]();
   }
+
 }
 
 // Make buffer array accessible

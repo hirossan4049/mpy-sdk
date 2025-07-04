@@ -86,7 +86,7 @@ export class REPLAdapter extends BrowserEventEmitter {
   private currentCommand?: {
     resolve: (value: string) => void;
     reject: (error: Error) => void;
-    timeout: number;
+    timeout: ReturnType<typeof setTimeout>;
   };
   public isConnected: boolean = false;
   private readingLoop: boolean = false;
@@ -252,12 +252,47 @@ export class REPLAdapter extends BrowserEventEmitter {
         /\(sysname='([^']+)', nodename='([^']+)', release='([^']+)', version='([^']+)', machine='([^']+)'\)/
       );
 
+      // Get hardware information
+      let flashSize = 0;
+      let ramSize = 0;
+      let macAddress = 'unknown';
+
+      try {
+        // Get flash size using esp module
+        await this.sendREPLCommand('import esp');
+        const flashSizeResult = await this.sendREPLCommand('esp.flash_size()');
+        flashSize = parseInt(flashSizeResult.trim()) || 0;
+      } catch (error) {
+        console.warn('Could not get flash size:', error);
+      }
+
+      try {
+        // Get free RAM using gc module
+        await this.sendREPLCommand('import gc');
+        const ramResult = await this.sendREPLCommand('gc.mem_free()');
+        ramSize = parseInt(ramResult.trim()) || 0;
+      } catch (error) {
+        console.warn('Could not get RAM size:', error);
+      }
+
+      try {
+        // Get MAC address using network module
+        await this.sendREPLCommand('import network');
+        await this.sendREPLCommand('wlan = network.WLAN(network.STA_IF)');
+        await this.sendREPLCommand('mac = wlan.config("mac")');
+        const macResult = await this.sendREPLCommand('":".join(["%02X" % b for b in mac])');
+        macAddress = macResult.trim().replace(/'/g, '');
+      } catch (error) {
+        console.warn('Could not get MAC address:', error);
+      }
+
       return {
         platform: platform.replace(/'/g, '') || 'esp32',
         version: match ? match[3] : 'unknown',
         chipId: match ? match[2] : 'unknown',
-        flashSize: 0, // Would need custom command to determine
-        ramSize: 0, // Would need custom command to determine
+        flashSize: flashSize,
+        ramSize: ramSize,
+        macAddress: macAddress,
       };
     } catch (error) {
       throw new CommunicationError(`Failed to get device info: ${error}`);
@@ -393,28 +428,23 @@ with open('${path}', 'rb') as f:
         for (let i = 0; i < hexData.length; i += maxHexSize) {
           const chunk = hexData.slice(i, i + maxHexSize);
           const mode = i === 0 ? 'wb' : 'ab'; // First chunk creates file, others append
-          const chunkCommand = `
-import binascii
-with open('${path}', '${mode}') as f:
-    f.write(binascii.unhexlify('${chunk}'))
-print('Chunk written')
-`;
-          await this.executeCode(chunkCommand);
+          
+          // Write using sequential commands for better reliability
+          await this.sendREPLCommand('import binascii');
+          await this.sendREPLCommand(`f = open('${path}', '${mode}')`);
+          await this.sendREPLCommand(`f.write(binascii.unhexlify('${chunk}'))`);
+          await this.sendREPLCommand('f.close()');
 
           if (options.onProgress) {
             options.onProgress(Math.min(i + maxHexSize, hexData.length) / 2, data.length);
           }
         }
       } else {
-        // Write file using MicroPython for small files
-        const command = `
-import binascii
-with open('${path}', 'wb') as f:
-    f.write(binascii.unhexlify('${hexData}'))
-print('File written successfully')
-`;
-
-        await this.executeCode(command);
+        // Write file using sequential commands for small files
+        await this.sendREPLCommand('import binascii');
+        await this.sendREPLCommand(`f = open('${path}', 'wb')`);
+        await this.sendREPLCommand(`f.write(binascii.unhexlify('${hexData}'))`);
+        await this.sendREPLCommand('f.close()');
 
         if (options.onProgress) {
           options.onProgress(data.length, data.length);
