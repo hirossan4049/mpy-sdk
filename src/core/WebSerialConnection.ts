@@ -84,7 +84,7 @@ export class WebSerialConnection extends BaseSerialConnection {
     }
   }
 
-  protected async writeRaw(data: Buffer): Promise<void> {
+  protected async writeRaw(data: Uint8Array): Promise<void> {
     if (!this.writer) {
       throw new CommunicationError('Not connected');
     }
