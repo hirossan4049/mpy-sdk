@@ -4,7 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-This project now exposes multiple packages under the `@h1mpy-sdk` scope. The Node.js SDK and Web Serial implementation share common logic from the core package.
+This is a monorepo containing the M5Stack MicroPython SDK with multiple packages under the `@h1mpy-sdk` scope. The project provides both Node.js and Web Serial implementations for M5Stack device communication, sharing common logic from the core package.
+
+**Monorepo Structure:**
+- `packages/core/` - Shared core logic (adapters, protocol handlers)
+- `packages/node/` - Node.js specific serial implementation
+- `packages/web/` - Web Serial API implementation for browsers
+- `examples/node/` - Node.js usage examples and tests
+- `examples/web/` - Web application examples with Vite
 
 ## Common Development Commands
 
@@ -48,20 +55,21 @@ pnpm test              # Run all tests
 pnpm test:watch        # Run tests in watch mode
 pnpm test:coverage     # Run tests with coverage
 
-# Quick connection test
-pnpm test:quick
+# Run working examples
+pnpm example:node      # Run Node.js basic example
+pnpm example:web       # Start web example server
 
-# Interactive CLI tools
-pnpm cli               # Interactive CLI with TypeScript
-pnpm cli:tui           # Terminal UI version
+# Node.js examples (in examples/node/)
+node basic-usage.js           # Complete M5Stack operations demo
+node simple-repl-test.js      # Quick REPL communication test
+node working-test.js          # Comprehensive hardware test
+node repl-example.js          # REPL adapter usage
+node interactive-demo.js      # Interactive CLI demo
 
-# Run examples
-pnpm example:repl      # REPL adapter example
-pnpm example:basic     # Basic usage example
-pnpm example:persist   # Firmware persistence example
-pnpm flash:sample      # Flash sample programs
-pnpm flash:simple      # Flash simple program
-pnpm flash:advanced    # Flash advanced program
+# Web examples (in examples/web/)
+# Start development server:
+cd examples/web && pnpm dev
+# Then open browser to http://localhost:3000
 ```
 
 ## Architecture Overview
@@ -78,11 +86,25 @@ pnpm flash:advanced    # Flash advanced program
 ├─────────────────────────────────────┤
 │    BaseSerialConnection            │ ← Abstract serial interface
 ├─────────────────────────────────────┤
-│   NodeSerialConnection             │ ← Node.js serial implementation
+│ NodeSerialConnection | WebSerialConnection │ ← Platform implementations
 ├─────────────────────────────────────┤
-│     ProtocolHandler                │ ← Binary protocol codec
+│     ProtocolHandler | REPLAdapter   │ ← Communication protocols
 └─────────────────────────────────────┘
 ```
+
+### Cross-Platform Support
+
+**Node.js Implementation** (`packages/node/`):
+- Uses `serialport` library for native serial communication
+- Full file system operations and device management
+- CommonJS modules for Node.js compatibility
+- Comprehensive error handling and connection management
+
+**Web Implementation** (`packages/web/`):
+- Uses Web Serial API (Chrome 89+, Edge 89+)
+- Browser-compatible with custom Buffer polyfill
+- Real-time REPL communication via WebSerialConnection
+- Supports file operations through hex-encoded transfers
 
 ### Dual Communication Modes
 
@@ -216,3 +238,41 @@ The SDK builds to two targets:
 - Test environment is Node.js with 5-second timeout
 - Run `pnpm test` to execute all tests
 - Mock serial connections for testing without hardware
+
+### 6. Examples and Real Hardware Testing
+- **Node.js Examples**: Complete working examples in `examples/node/`
+  - `working-test.js` - Verified with real M5Stack hardware (36ms response time)
+  - `basic-usage.js` - Comprehensive operations demo
+  - `simple-repl-test.js` - Quick REPL verification
+- **Web Examples**: Browser-based examples in `examples/web/`
+  - Real Web Serial API implementation
+  - Interactive web interface with connection management
+  - File operations and code execution via browser
+
+## Real Hardware Test Results
+
+**Tested Device**: M5Stack connected to `/dev/tty.usbserial-55520ADC16`
+
+**Confirmed Working Features**:
+- ✅ REPL communication (36ms average response)
+- ✅ LCD control and display updates
+- ✅ System information retrieval
+- ✅ File operations (read/write/delete)
+- ✅ Button status reading
+- ✅ Python code execution
+- ✅ Directory listing
+- ✅ Device connectivity checking
+
+**Example Output**:
+```
+🔧 M5Stack Working Test
+📡 Connecting to /dev/tty.usbserial-55520ADC16...
+✅ REPL connected!
+
+1️⃣ Basic operations:
+   Hello M5Stack!
+   2 + 3 = 5
+
+4️⃣ M5Stack LCD test:
+   LCD updated successfully
+```
