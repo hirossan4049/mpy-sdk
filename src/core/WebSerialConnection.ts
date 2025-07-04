@@ -105,7 +105,7 @@ export class WebSerialConnection extends BaseSerialConnection {
         const { value, done } = await this.reader.read();
         if (done) break;
         if (value) {
-          this.onDataReceived(Buffer.from(value));
+          this.onDataReceived(value);
         }
       }
     } catch (error) {
