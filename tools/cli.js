@@ -4,7 +4,7 @@
  * Simple command line interface for M5Stack operations
  */
 
-const { REPLAdapter } = require('./dist/node/adapters/REPLAdapter');
+const { REPLAdapter } = require('../dist/node/adapters/REPLAdapter');
 const readline = require('readline');
 
 const DEFAULT_PORT = '/dev/tty.usbserial-55520ADC16';
