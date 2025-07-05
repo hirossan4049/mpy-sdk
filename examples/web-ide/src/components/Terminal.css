@@ -1,0 +1,86 @@
+.terminal {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 35px;
+  padding: 0 12px;
+  background-color: #252526;
+  border-bottom: 1px solid #2d2d30;
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #cccccc;
+}
+
+.terminal-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.terminal-action {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.terminal-action:hover {
+  background-color: #2a2d2e;
+}
+
+.terminal-content {
+  flex: 1;
+  padding: 8px 12px;
+  overflow-y: auto;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: text;
+}
+
+.terminal-line {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.terminal-line.error {
+  color: #f48771;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.terminal-prompt {
+  color: #569cd6;
+  margin-right: 4px;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #cccccc;
+  font-family: inherit;
+  font-size: inherit;
+}

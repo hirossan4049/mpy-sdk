@@ -1,0 +1,40 @@
+.activity-bar {
+  width: 48px;
+  background-color: #2d2d30;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 8px;
+}
+
+.activity-item {
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: transparent;
+  color: #868686;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.activity-item:hover {
+  color: #cccccc;
+}
+
+.activity-item.active {
+  color: #ffffff;
+}
+
+.activity-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #ffffff;
+}

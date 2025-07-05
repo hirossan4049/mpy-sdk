@@ -4,7 +4,7 @@
   "description": "MicroPython SDK for M5Stack devices - Monorepo containing Node.js, Web, and CLI packages",
   "private": true,
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm -r --filter './packages/**' build",
     "clean": "pnpm -r clean && rimraf dist",
     "lint": "pnpm -r lint",
     "lint:fix": "pnpm -r lint:fix",
