@@ -34,6 +34,8 @@ const CLI = () => {
   const [adapter, setAdapter] = useState<NodeREPLAdapter | null>(null);
   const [message, setMessage] = useState('');
   const [commandResult, setCommandResult] = useState('');
+  const [currentPath, setCurrentPath] = useState('/');
+  const [currentFiles, setCurrentFiles] = useState<FileEntry[]>([]);
 
   useEffect(() => {
     loadPorts();
@@ -60,6 +62,34 @@ const CLI = () => {
       setMessage(`Error loading ports: ${error instanceof Error ? error.message : String(error)}`);
     }
     setLoading(false);
+  };
+
+  const loadDirectory = async (path: string) => {
+    if (!adapter) return;
+    
+    setLoading(true);
+    try {
+      const files = await adapter.listDirectory(path);
+      setCurrentFiles(files);
+      setCurrentPath(path);
+    } catch (error) {
+      setMessage(`Error loading directory: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    setLoading(false);
+  };
+
+  const handleFileSelect = async (file: FileEntry) => {
+    if (file.type === 'directory') {
+      await loadDirectory(file.path);
+    } else {
+      setCommandResult(`Selected file: ${file.name} at ${file.path}`);
+    }
+  };
+
+  const navigateUp = () => {
+    if (currentPath === '/') return;
+    const parentPath = currentPath.split('/').slice(0, -1).join('/') || '/';
+    loadDirectory(parentPath);
   };
 
   const handlePortSelect = async (item: PortItem) => {
@@ -93,7 +123,7 @@ const CLI = () => {
 
   const connectedMenuItems = [
     { label: '🐍 Execute Python Code', value: 'exec' },
-    { label: '📁 List Files', value: 'files' },
+    { label: '📁 Browse Files', value: 'browse' },
     { label: '📊 Device Info', value: 'info' },
     { label: '💾 Save to main.py', value: 'save' },
     { label: '📥 Backup Firmware', value: 'backup' },
@@ -130,15 +160,9 @@ const CLI = () => {
           }
           break;
 
-        case 'files':
-          if (adapter) {
-            const files = await adapter.listDirectory('/');
-            const fileList = files.map((f: FileEntry) => {
-              const icon = f.type === 'directory' ? '📁' : '📄';
-              return `${icon} ${f.name}`;
-            }).join('\n');
-            setCommandResult(`Files on device:\n${fileList}`);
-          }
+        case 'browse':
+          setScreen('browse');
+          await loadDirectory('/');
           break;
 
         case 'info':
@@ -294,6 +318,41 @@ while True:
         </Box>
       )}
 
+      {screen === 'browse' && !loading && (
+        <Box flexDirection="column">
+          <Box marginBottom={1}>
+            <Text color="cyan">📁 Browse Files: {currentPath}</Text>
+          </Box>
+          {currentPath !== '/' && (
+            <Box marginBottom={1}>
+              <Text color="yellow">← Press Enter on ".." to go up</Text>
+            </Box>
+          )}
+          <SelectInput
+            items={[
+              ...(currentPath !== '/' ? [{ label: '📁 ..', value: '..' }] : []),
+              ...currentFiles.map(file => ({
+                label: `${file.type === 'directory' ? '📁' : '📄'} ${file.name}`,
+                value: file.name
+              })),
+              { label: '🔙 Back to Menu', value: 'back' }
+            ]}
+            onSelect={(item) => {
+              if (item.value === '..') {
+                navigateUp();
+              } else if (item.value === 'back') {
+                setScreen('connected');
+              } else {
+                const selectedFile = currentFiles.find(f => f.name === item.value);
+                if (selectedFile) {
+                  handleFileSelect(selectedFile);
+                }
+              }
+            }}
+          />
+        </Box>
+      )}
+
       {commandResult && (
         <Box marginTop={1} borderStyle="single" paddingX={1}>
           <Text>{commandResult}</Text>
@@ -318,11 +377,22 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (!isRawModeSupported) {
     console.log('🚨 Raw mode not supported. Running in compatibility mode...');
     console.log('📡 M5Stack CLI - Non-interactive mode');
+    console.log('');
     console.log('Use the command line interface instead:');
-    console.log('  pnpm cli list-ports');
-    console.log('  pnpm cli info <port>');
-    console.log('  pnpm cli exec <port> <code>');
-    console.log('  pnpm cli ls <port>');
+    console.log('  📋 List available devices:');
+    console.log('    pnpm cli list-ports');
+    console.log('');
+    console.log('  📊 Get device information:');
+    console.log('    pnpm cli info /dev/tty.usbserial-55520ADC16');
+    console.log('');
+    console.log('  📁 Browse directories:');
+    console.log('    pnpm cli ls /dev/tty.usbserial-55520ADC16');
+    console.log('    pnpm cli ls /dev/tty.usbserial-55520ADC16 --path /flash');
+    console.log('    pnpm cli ls /dev/tty.usbserial-55520ADC16 --path /flash/apps');
+    console.log('');
+    console.log('  🐍 Execute Python code:');
+    console.log('    pnpm cli exec /dev/tty.usbserial-55520ADC16 "print(\'Hello M5Stack!\')"');
+    console.log('');
     process.exit(0);
   }
   
