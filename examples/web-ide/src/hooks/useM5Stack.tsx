@@ -96,20 +96,44 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
   const readFile = useCallback(async (path: string) => {
     if (!activeConnection) throw new Error('Not connected')
     try {
-      // Try reading file using print() to avoid REPL representation issues
       console.log('Reading file:', path)
       
-      // Use exec with print to get clean output
-      const readResult = await activeConnection.executeCode(
-        `exec("with open('${path}', 'r') as f: print(f.read(), end='')")`
-      )
+      // Use a one-liner approach to avoid multi-line REPL mode
+      const command = `open('${path}', 'r').read()`
+      const result = await activeConnection.executeCode(command)
       
-      if (readResult && readResult.output) {
-        // The output should be the file content directly
-        return readResult.output
+      if (result && result.output) {
+        let content = result.output
+        
+        // Split into lines
+        const lines = content.split('\n')
+        
+        // Remove the first line if it contains the command echo
+        if (lines.length > 0 && lines[0].includes(command)) {
+          lines.shift()
+        }
+        
+        // Join remaining lines
+        content = lines.join('\n').trim()
+        
+        // Remove surrounding quotes if present
+        if ((content.startsWith("'") && content.endsWith("'")) || 
+            (content.startsWith('"') && content.endsWith('"'))) {
+          content = content.slice(1, -1)
+        }
+        
+        // Handle escape sequences
+        content = content.replace(/\\n/g, '\n')
+                       .replace(/\\r/g, '\r')
+                       .replace(/\\t/g, '\t')
+                       .replace(/\\'/g, "'")
+                       .replace(/\\"/g, '"')
+                       .replace(/\\\\/g, '\\')
+        
+        return content
       }
       
-      // Fallback to original method if above fails
+      // Fallback to hex-encoded method if simple read fails
       const data = await activeConnection.readFile(path)
       
       // If it's Uint8Array or ArrayBuffer, decode it
@@ -125,6 +149,7 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
       
       // Fallback - convert to string
       return String(data)
+      
     } catch (error) {
       console.error('Failed to read file:', error)
       throw error
