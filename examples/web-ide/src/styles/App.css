@@ -1,0 +1,37 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #1e1e1e;
+  color: #cccccc;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+}
+
+.resize-handle {
+  background-color: #2d2d30;
+  transition: background-color 0.2s;
+}
+
+.resize-handle:hover {
+  background-color: #007acc;
+}
+
+.resize-handle.vertical {
+  width: 1px;
+  cursor: col-resize;
+}
+
+.resize-handle.horizontal {
+  height: 1px;
+  cursor: row-resize;
+}

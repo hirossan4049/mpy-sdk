@@ -1,0 +1,124 @@
+.editor-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+}
+
+.editor-tabs {
+  display: flex;
+  justify-content: space-between;
+  background-color: #252526;
+  border-bottom: 1px solid #2d2d30;
+  overflow-x: auto;
+  min-height: 35px;
+}
+
+.tabs-container {
+  display: flex;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.editor-actions {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 4px;
+}
+
+.editor-action-button {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.editor-action-button:hover {
+  background-color: #2a2d2e;
+}
+
+.editor-action-button:disabled {
+  color: #5a5a5a;
+  cursor: not-allowed;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 35px;
+  background-color: #2d2d30;
+  border-right: 1px solid #252526;
+  cursor: pointer;
+  user-select: none;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.editor-tab:hover {
+  background-color: #2a2d2e;
+}
+
+.editor-tab.active {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #1e1e1e;
+}
+
+.tab-title {
+  flex: 1;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dirty-indicator {
+  color: #cccccc;
+}
+
+.tab-close {
+  background: transparent;
+  border: none;
+  color: #868686;
+  cursor: pointer;
+  padding: 2px;
+  margin-left: 8px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  visibility: hidden;
+}
+
+.editor-tab:hover .tab-close {
+  visibility: visible;
+}
+
+.tab-close:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #cccccc;
+}
+
+.editor-content {
+  flex: 1;
+  position: relative;
+}
+
+.editor-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #868686;
+  font-size: 14px;
+}
