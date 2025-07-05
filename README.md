@@ -10,9 +10,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
 
-*Cross-platform MicroPython SDK with Node.js, Web Serial, and CLI support*
+*Cross-platform MicroPython SDK with Node.js and Web Serial support*
 
-[**🎯 Quick Start**](#-quick-start) • [**📖 Documentation**](#-api-reference) • [**🛠️ CLI Tools**](#-cli-tools) • [**🌐 Examples**](#-examples)
+[**🎯 Quick Start**](#-quick-start) • [**📖 Documentation**](#-api-reference) • [**🌐 Examples**](#-examples) • [**🏗️ Development**](#-development)
 
 </div>
 
@@ -28,13 +28,13 @@
 - **Zero Config** - Works out of the box
 - **Full TypeScript** - Complete type safety
 - **Hot Reload** - Instant development feedback
-- **Rich CLI** - Interactive terminal interface
+- **Real-time Communication** - Direct REPL integration
 
 </td>
 <td width="50%">
 
 ### ⚡ **Performance & Reliability**
-- **Multi-Platform** - Node.js, Browser, CLI
+- **Multi-Platform** - Node.js and Browser support
 - **Auto-Retry** - Built-in fault tolerance
 - **Progress Tracking** - Real-time updates
 - **Hardware Tested** - Verified on real devices
@@ -48,10 +48,9 @@
 ### 📦 Installation
 
 ```bash
-# Choose your flavor
+# Choose your platform
 npm i @h1mpy-sdk/node   # 🟢 Node.js
 npm i @h1mpy-sdk/web    # 🌐 Browser
-npm i @h1mpy-sdk/cli    # 💻 CLI tools
 ```
 
 ### 🚀 30 Second Demo
@@ -75,12 +74,42 @@ console.log(result.output); // ✅ "Hello from M5Stack! 🎉"
 
 > **🎬 Want to see it in action?** Run `pnpm example:node` for a live demo!
 
+## 📦 Package Architecture
+
+The project is organized as a monorepo with platform-specific packages:
+
+### Core Packages
+
+- **`@h1mpy-sdk/core`** – Shared core logic and utilities
+- **`@h1mpy-sdk/node`** – Node.js serial implementation  
+- **`@h1mpy-sdk/web`** – Browser Web Serial support
+- **`@h1mpy-sdk/cli`** – Command-line interface and TUI tools
+
+### Directory Structure
+
+```
+packages/
+├── core/           # 🔧 Shared abstractions and protocols
+│   ├── adapters/   # REPL and communication adapters
+│   ├── core/       # Serial connections and protocol handlers
+│   ├── manager/    # High-level device operations
+│   ├── types/      # TypeScript definitions
+│   └── utils/      # File transfer and Python analysis
+├── node/           # 🟢 Node.js implementation
+├── web/            # 🌐 Web Serial implementation
+└── cli/            # 💻 Command-line and TUI tools
+
+examples/
+├── node/           # 📝 Node.js examples and demos
+└── web/            # 🌐 Browser examples with Vite
+```
+
 ## 🌟 What's Special?
 
 ### 🎨 **Modern Developer Experience**
 
 <details>
-<summary>🔍 <strong>Interactive CLI & TUI</strong></summary>
+<summary>🎮 <strong>Interactive CLI & TUI</strong></summary>
 
 ```bash
 # 🎮 Launch interactive terminal
@@ -130,37 +159,23 @@ await connection.writeFile('/flash/app.py', code, {
 
 </details>
 
-## 🛠️ CLI Tools
+<details>
+<summary>🐍 <strong>REPL Integration</strong></summary>
 
-### 🎮 Interactive Terminal UI
+```typescript
+// 🎮 Direct MicroPython REPL access
+const repl = new REPLAdapter('/dev/ttyUSB0');
+await repl.connect();
 
-```bash
-pnpm cli:tui  # 🚀 Launch the magic
+// 🔥 Raw REPL mode for fast execution
+await repl.enterRawREPL();
+const result = await repl.executeRaw('print("Fast execution!")');
+
+// 📊 Interactive mode for debugging
+await repl.enterNormalREPL();
 ```
 
-**Features:**
-- 📡 **Auto-Discovery** - Finds your M5Stack instantly
-- 🐍 **Live Python REPL** - Code and see results immediately  
-- 📁 **File Manager** - Drag & drop file operations
-- 📊 **Device Monitor** - Real-time system info
-- 🎨 **LCD Control** - Visual feedback on device
-- 💾 **Firmware Backup** - One-click device cloning
-
-### ⚡ Command Line Interface
-
-```bash
-# 🔍 Discover devices
-m5stack-cli list-ports
-
-# 🎯 Execute code instantly
-m5stack-cli exec /dev/ttyUSB0 "print('Hello World! 🌍')"
-
-# 📤 Upload files
-m5stack-cli upload /dev/ttyUSB0 ./my_app.py
-
-# 📥 Download files  
-m5stack-cli download /dev/ttyUSB0 /flash/main.py ./backup.py
-```
+</details>
 
 ## 🌐 Examples
 
@@ -364,6 +379,26 @@ while True:
 console.log('✅ App will run on next boot!');
 ```
 
+### 🔌 Direct REPL Access
+
+```typescript
+import { REPLAdapter } from '@h1mpy-sdk/core';
+
+const repl = new REPLAdapter('/dev/ttyUSB0');
+await repl.connect();
+
+// 🎮 Enter raw REPL for fast execution
+await repl.enterRawREPL();
+const result = await repl.executeRaw(`
+import machine
+print(f"Chip ID: {machine.unique_id()}")
+`);
+
+// 📊 Get detailed execution info
+console.log('Output:', result.output);
+console.log('Execution time:', result.executionTime, 'ms');
+```
+
 ## 🏗️ Development
 
 ### 🛠️ Setup
@@ -375,11 +410,11 @@ pnpm install
 # 🔨 Build everything
 pnpm build
 
-# 🎮 Try the CLI
-pnpm cli:tui
-
 # 🌐 Test web example
 pnpm example:web
+
+# 🟢 Test Node.js example
+pnpm example:node
 ```
 
 ### 🧪 Testing
@@ -398,17 +433,77 @@ pnpm test:coverage
 pnpm lint
 ```
 
-### 📦 Package Scripts
+### 📦 Available Scripts
 
 | Command | Description |
 |---------|-------------|
 | `pnpm build` | 🔨 Build all packages |
 | `pnpm dev` | 🚀 Development build |
 | `pnpm cli` | 💻 Start CLI interface |
-| `pnpm cli:tui` | 🎮 Interactive terminal |
-| `pnpm example:node` | 🟢 Node.js examples |
-| `pnpm example:web` | 🌐 Web examples |
+| `pnpm cli:tui` | 🎮 Interactive terminal UI |
+| `pnpm example:node` | 🟢 Run Node.js REPL example |
+| `pnpm example:node:flash` | 🔥 Run Node.js flash example |
+| `pnpm example:web` | 🌐 Start web example server |
 | `pnpm clean` | 🧹 Clean build artifacts |
+
+## 🛠️ CLI Tools
+
+### 🎮 Interactive Terminal UI
+
+```bash
+pnpm cli:tui  # 🚀 Launch the magic
+```
+
+**Features:**
+- 📡 **Auto-Discovery** - Finds your M5Stack instantly
+- 🐍 **Live Python REPL** - Code and see results immediately  
+- 📁 **File Manager** - Drag & drop file operations
+- 📊 **Device Monitor** - Real-time system info
+- 🎨 **LCD Control** - Visual feedback on device
+- 💾 **Firmware Backup** - One-click device cloning
+
+### ⚡ Command Line Interface
+
+```bash
+# Install CLI globally
+npm i -g @h1mpy-sdk/cli
+
+# 🔍 Discover devices
+m5stack-cli list-ports
+
+# 🎯 Execute code instantly
+m5stack-cli exec /dev/ttyUSB0 "print('Hello World! 🌍')"
+
+# 📤 Upload files
+m5stack-cli upload /dev/ttyUSB0 ./my_app.py
+
+# 📥 Download files  
+m5stack-cli download /dev/ttyUSB0 /flash/main.py ./backup.py
+
+# 📁 List files
+m5stack-cli ls /dev/ttyUSB0 /flash
+
+# 📊 Device information
+m5stack-cli info /dev/ttyUSB0
+
+# 🎮 Interactive REPL
+m5stack-cli repl /dev/ttyUSB0
+```
+
+### 🎁 Bundled Examples
+
+```bash
+# 🟢 Node.js examples
+cd examples/node
+node basic-usage.js          # Basic SDK usage
+node flash-example.js        # Firmware flashing
+node raw-repl-ui-test.js     # REPL interface test
+
+# 🌐 Web examples  
+cd examples/web
+pnpm dev                     # Start Vite dev server
+# Open http://localhost:5173
+```
 
 ## 🤝 Contributing
 

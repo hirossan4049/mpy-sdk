@@ -15,6 +15,9 @@ This directory contains working examples for the M5Stack MicroPython SDK using N
 ```bash
 # Run the main UI demo
 pnpm example:node
+
+# Write main.py to flash memory
+pnpm example:flash
 ```
 
 ### 📚 Examples
@@ -49,6 +52,27 @@ node raw-repl-ui-test.js
 - ✅ Complete UI demonstration
 - ✅ Animation and interaction support
 - ✅ Real device compatibility verified
+
+#### 3. `flash-example.js` - Flash Memory Programming ✅
+Complete flash memory programming example:
+- Writes comprehensive main.py to /flash/main.py
+- Interactive application with multiple screens
+- Button handling (A: Count+, B: Info, C: Reset)
+- Memory monitoring and garbage collection
+- Auto-startup capability on device boot
+- Backup existing files before writing
+
+```bash
+node flash-example.js
+```
+
+**Features**:
+- ✅ **Complete application** written to flash memory
+- ✅ Multi-screen UI (main screen, info screen)
+- ✅ Interactive button controls
+- ✅ Real-time counter and system info
+- ✅ Automatic backup of existing files
+- ✅ Persistent application that runs on boot
 
 ## Technical Notes
 
