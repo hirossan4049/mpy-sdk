@@ -25,13 +25,13 @@ class FlashExample {
     });
 
     await this.connection.connect();
-    
+
     // Initialize Raw REPL
     await this.connection.write(Buffer.from([0x03])); // Ctrl+C
     await this.waitForData(1000);
     await this.connection.write(Buffer.from([0x01])); // Ctrl+A
     await this.waitForData(2000);
-    
+
     this.responseBuffer = '';
   }
 
@@ -56,29 +56,29 @@ class FlashExample {
 
   async writeFileToFlash(filename, content) {
     console.log(`📝 Writing ${filename} to flash...`);
-    
+
     // Split content into chunks for reliable transfer
     const chunkSize = 200; // Smaller chunks for stability
     const chunks = [];
-    
+
     for (let i = 0; i < content.length; i += chunkSize) {
       chunks.push(content.slice(i, i + chunkSize));
     }
-    
+
     // Open file for writing
     await this.executeCode(`f = open('${filename}', 'w')`);
-    
+
     // Write chunks
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i];
       const escapedChunk = chunk.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n');
       await this.executeCode(`f.write('${escapedChunk}')`);
-      
+
       if (i % 10 === 0) {
         console.log(`   Progress: ${Math.round((i / chunks.length) * 100)}%`);
       }
     }
-    
+
     // Close file
     await this.executeCode('f.close()');
     console.log(`✅ ${filename} written successfully`);
@@ -100,7 +100,6 @@ import time
 lcd.clear()
 
 # Display hello world
-lcd.setTextSize(3)
 lcd.print("Hello World", 50, 50, 0x00FF00)
 
 print("Hello World displayed on M5Stack!")
