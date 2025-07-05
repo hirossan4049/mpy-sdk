@@ -142,7 +142,7 @@ export class REPLAdapter extends BrowserEventEmitter {
 
   public async startReading(): Promise<void> {
     if (!this.reader) return;
-    
+
     this.readingLoop = true;
     try {
       while (this.readingLoop && this.reader) {
@@ -428,7 +428,7 @@ with open('${path}', 'rb') as f:
         for (let i = 0; i < hexData.length; i += maxHexSize) {
           const chunk = hexData.slice(i, i + maxHexSize);
           const mode = i === 0 ? 'wb' : 'ab'; // First chunk creates file, others append
-          
+
           // Write using sequential commands for better reliability
           await this.sendREPLCommand('import binascii');
           await this.sendREPLCommand(`f = open('${path}', '${mode}')`);

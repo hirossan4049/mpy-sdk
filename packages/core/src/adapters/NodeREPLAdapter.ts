@@ -37,7 +37,7 @@ export class NodeREPLAdapter extends EventEmitter {
     try {
       // Import NodeSerialConnection dynamically
       const { NodeSerialConnection } = await import('../core/NodeSerialConnection');
-      
+
       this.connection = new NodeSerialConnection(this.portPath, {
         baudRate: this.baudRate,
         timeout: 5000,
@@ -342,7 +342,7 @@ with open('${path}', 'rb') as f:
         for (let i = 0; i < hexData.length; i += maxHexSize) {
           const chunk = hexData.slice(i, i + maxHexSize);
           const mode = i === 0 ? 'wb' : 'ab'; // First chunk creates file, others append
-          
+
           // Write using sequential commands for better reliability
           await this.sendREPLCommand('import binascii');
           await this.sendREPLCommand(`f = open('${path}', '${mode}')`);

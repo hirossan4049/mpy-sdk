@@ -5,8 +5,8 @@
  * Command-line interface for M5Stack MicroPython SDK
  */
 
-import { program } from 'commander';
 import { M5StackClient, NodeREPLAdapter } from '@h1mpy-sdk/node';
+import { program } from 'commander';
 import fs from 'fs';
 import path from 'path';
 
@@ -18,13 +18,13 @@ async function listPorts() {
   try {
     const client = new M5StackClient();
     const ports = await client.listPorts();
-    
+
     console.log('📡 Available M5Stack devices:');
     if (ports.length === 0) {
       console.log('   No devices found');
       return;
     }
-    
+
     ports.forEach((port, index) => {
       const manufacturer = port.manufacturer || 'Unknown';
       console.log(`   ${index + 1}. ${port.path} - ${manufacturer}`);
@@ -51,7 +51,7 @@ async function connectToDevice(portPath: string) {
 
 async function executeCode(portPath: string, code: string) {
   const adapter = await connectToDevice(portPath);
-  
+
   try {
     console.log('🐍 Executing Python code...');
     const result = await adapter.executeCode(code);
@@ -66,11 +66,11 @@ async function executeCode(portPath: string, code: string) {
 
 async function uploadFile(portPath: string, localFile: string, remotePath?: string) {
   const adapter = await connectToDevice(portPath);
-  
+
   try {
     const content = fs.readFileSync(localFile, 'utf8');
     const targetPath = remotePath || `/flash/${path.basename(localFile)}`;
-    
+
     console.log(`📤 Uploading ${localFile} to ${targetPath}...`);
     await adapter.writeFile(targetPath, content);
     console.log('✅ File uploaded successfully!');
@@ -83,12 +83,12 @@ async function uploadFile(portPath: string, localFile: string, remotePath?: stri
 
 async function downloadFile(portPath: string, remotePath: string, localFile?: string) {
   const adapter = await connectToDevice(portPath);
-  
+
   try {
     console.log(`📥 Downloading ${remotePath}...`);
     const content = await adapter.readFile(remotePath);
     const targetFile = localFile || path.basename(remotePath);
-    
+
     fs.writeFileSync(targetFile, content);
     console.log(`✅ File downloaded to ${targetFile}`);
   } catch (error) {
@@ -100,11 +100,11 @@ async function downloadFile(portPath: string, remotePath: string, localFile?: st
 
 async function listFiles(portPath: string, remotePath: string = '/') {
   const adapter = await connectToDevice(portPath);
-  
+
   try {
     console.log(`📁 Listing files in ${remotePath}:`);
     const files = await adapter.listDirectory(remotePath);
-    
+
     files.forEach(file => {
       const icon = file.type === 'directory' ? '📁' : '📄';
       console.log(`   ${icon} ${file.name}`);
@@ -118,11 +118,11 @@ async function listFiles(portPath: string, remotePath: string = '/') {
 
 async function getDeviceInfo(portPath: string) {
   const adapter = await connectToDevice(portPath);
-  
+
   try {
     console.log('📊 Getting device information...');
     const info = await adapter.getDeviceInfo();
-    
+
     console.log('✅ Device Information:');
     console.log(`   Platform: ${info.platform}`);
     console.log(`   Version: ${info.version}`);
@@ -188,19 +188,19 @@ program
   .description('Start interactive REPL session')
   .action(async (portPath) => {
     const adapter = await connectToDevice(portPath);
-    
+
     console.log('🐍 Starting REPL session...');
     console.log('Type "exit()" or press Ctrl+C to quit');
-    
+
     const readline = require('readline');
     const rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
       prompt: '>>> '
     });
-    
+
     rl.prompt();
-    
+
     rl.on('line', async (input: string) => {
       const code = input.trim();
       if (code === 'exit()' || code === 'quit()') {
@@ -208,23 +208,23 @@ program
         rl.close();
         return;
       }
-      
+
       try {
         const result = await adapter.executeCode(code);
         console.log(result.output);
       } catch (error) {
         console.error('Error:', error instanceof Error ? error.message : String(error));
       }
-      
+
       rl.prompt();
     });
-    
+
     rl.on('close', async () => {
       console.log('\n👋 Goodbye!');
       await adapter.disconnect();
       process.exit(0);
     });
-    
+
     process.on('SIGINT', async () => {
       console.log('\n📡 Disconnecting...');
       await adapter.disconnect();
