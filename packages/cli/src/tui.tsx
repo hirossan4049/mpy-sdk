@@ -109,7 +109,11 @@ const CLI = () => {
       setMessage(`Connected to ${item.value}`);
       setScreen('connected');
     } catch (error) {
-      setMessage(`Connection failed: ${error instanceof Error ? error.message : String(error)}`);
+      let errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Resource busy') || errorMessage.includes('cannot open')) {
+        errorMessage += '\nHint: The serial port may be in use by another application. Please ensure no other programs are using it, or try reconnecting the device.';
+      }
+      setMessage(`Connection failed: ${errorMessage}`);
       setSelectedPort(null);
     }
     setLoading(false);

@@ -44,7 +44,11 @@ async function connectToDevice(portPath: string) {
     console.log('✅ Connected successfully!');
     return adapter;
   } catch (error) {
-    console.error('❌ Connection failed:', error instanceof Error ? error.message : String(error));
+    let errorMessage = error instanceof Error ? error.message : String(error);
+    if (errorMessage.includes('Resource busy') || errorMessage.includes('cannot open')) {
+      errorMessage += '\nHint: The serial port may be in use by another application. Please ensure no other programs are using it, or try reconnecting the device.';
+    }
+    console.error('❌ Connection failed:', errorMessage);
     process.exit(1);
   }
 }
