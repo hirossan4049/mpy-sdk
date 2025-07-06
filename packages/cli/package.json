@@ -1,5 +1,5 @@
 {
-  "name": "@h1mpy-sdk/cli",
+  "name": "m5stack-cli",
   "version": "1.0.0",
   "description": "Command-line interface and TUI tools for M5Stack SDK",
   "type": "module",
@@ -50,5 +50,6 @@
     "interactive"
   ],
   "author": "hirossan4049",
-  "license": "MIT"
+  "license": "MIT",
+  "publishConfig": { "access": "public" }
 }
