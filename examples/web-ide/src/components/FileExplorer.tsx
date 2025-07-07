@@ -21,27 +21,29 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps) => {
   const [selectedFile, setSelectedFile] = useState<string>('')
   const [loading, setLoading] = useState(false)
 
-  const loadFiles = async (path = '/flash') => {
+  const loadFiles = async (path = '.') => {
     if (!isConnected) return
     
     setLoading(true)
     try {
       const files = await listDirectory(path)
+      console.log('FileExplorer: loaded files for path', path, ':', files)
       const nodes: FileNode[] = files.map(file => ({
         name: file.name,
         type: file.isDirectory ? 'directory' : 'file',
-        path: `${path}${path.endsWith('/') ? '' : '/'}${file.name}`,
+        path: path === '.' ? file.name : `${path}${path.endsWith('/') ? '' : '/'}${file.name}`,
         children: file.isDirectory ? [] : undefined,
         expanded: false
       }))
       
-      if (path === '/flash') {
+      if (path === '.') {
         setFileTree(nodes)
       }
       
       return nodes
     } catch (error) {
-      console.error('Failed to load files:', error)
+      console.error('Failed to load files for path', path, ':', error)
+      // Don't clear the file tree on error, just log it
       return []
     } finally {
       setLoading(false)

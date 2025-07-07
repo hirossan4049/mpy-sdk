@@ -181,11 +181,19 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
   const listDirectory = useCallback(async (path: string) => {
     if (!activeConnection) throw new Error('Not connected')
 
-    // Wait a bit before listing directory to ensure connection is stable
-    await resetREPL()
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    return activeConnection.listDirectory(path)
+    try {
+      // Wait a bit before listing directory to ensure connection is stable
+      await resetREPL()
+      await new Promise(resolve => setTimeout(resolve, 500)) // Reduced wait time
+      
+      const result = await activeConnection.listDirectory(path)
+      addOutputLog(`Listed directory ${path}: ${result.length} items`)
+      return result
+    } catch (error) {
+      console.error('Directory listing failed for', path, ':', error)
+      addOutputLog(`Failed to list directory ${path}: ${error instanceof Error ? error.message : String(error)}`)
+      throw error
+    }
   }, [activeConnection])
 
   const readFile = useCallback(async (path: string) => {
