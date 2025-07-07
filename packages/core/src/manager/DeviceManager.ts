@@ -1,5 +1,5 @@
 /**
- * M5Stack Device Manager
+ * MicroPython Device Manager
  *
  * High-level device management and file operations
  */
@@ -19,6 +19,8 @@ import {
   FileTransferProgress,
   WriteOptions,
 } from '../types';
+import { DeviceProfile, DeviceDetectionResult, UNKNOWN_DEVICE_PROFILE } from '../types/DeviceProfile';
+import { DeviceDetector } from '../utils/DeviceDetector';
 import { FileTransferManager } from '../utils/FileTransfer';
 import { PythonAnalyzer } from '../utils/PythonAnalyzer';
 
@@ -26,12 +28,14 @@ export class DeviceManager extends EventEmitter {
   protected connection: BaseSerialConnection;
   private fileTransfer: FileTransferManager;
   private pythonAnalyzer: PythonAnalyzer;
+  private deviceProfile: DeviceProfile;
 
-  constructor(connection: BaseSerialConnection) {
+  constructor(connection: BaseSerialConnection, deviceProfile?: DeviceProfile) {
     super();
     this.connection = connection;
     this.fileTransfer = new FileTransferManager(connection);
     this.pythonAnalyzer = new PythonAnalyzer();
+    this.deviceProfile = deviceProfile || UNKNOWN_DEVICE_PROFILE;
 
     // Forward connection events
     this.connection.on('connect', () => this.emit('connect'));
@@ -52,6 +56,48 @@ export class DeviceManager extends EventEmitter {
    */
   async disconnect(): Promise<void> {
     await this.connection.disconnect();
+  }
+
+  /**
+   * Get the current device profile
+   */
+  getDeviceProfile(): DeviceProfile {
+    return this.deviceProfile;
+  }
+
+  /**
+   * Set device profile
+   */
+  setDeviceProfile(profile: DeviceProfile): void {
+    this.deviceProfile = profile;
+  }
+
+  /**
+   * Auto-detect device type by getting device info
+   */
+  async detectDevice(): Promise<DeviceDetectionResult> {
+    try {
+      // Execute device-specific info code
+      const result = await this.executeCode(this.deviceProfile.getDeviceInfoCode);
+      const deviceInfo = DeviceDetector.parseDeviceInfo(result.output);
+      
+      // Detect device based on the info
+      const detection = DeviceDetector.detectByDeviceInfo(deviceInfo);
+      
+      // Update our device profile if detection is confident
+      if (detection.confidence > 0.7) {
+        this.deviceProfile = detection.profile;
+      }
+      
+      return detection;
+    } catch (error) {
+      // If detection fails, keep current profile
+      return {
+        profile: this.deviceProfile,
+        confidence: 0.1,
+        detectionMethod: 'fallback'
+      };
+    }
   }
 
   /**
@@ -89,16 +135,17 @@ export class DeviceManager extends EventEmitter {
   /**
    * List directory contents
    */
-  async listDirectory(path: string = '/flash'): Promise<DirectoryEntry[]> {
+  async listDirectory(path?: string): Promise<DirectoryEntry[]> {
+    const dirPath = path || this.deviceProfile.defaultBasePath;
     const command: Command = {
       code: CommandCode.LIST_DIR,
-      data: path,
+      data: dirPath,
     };
 
     const response = await this.connection.sendCommand(command);
     const dirList = response.data.toString();
 
-    return this.parseDirectoryListing(path, dirList);
+    return this.parseDirectoryListing(dirPath, dirList);
   }
 
   /**

@@ -226,27 +226,102 @@ class WebDeviceManager extends BrowserEventEmitter {
         throw new Error('Not connected to device');
       }
 
+      // Try to ensure we're in a clean REPL state first
+      await this.connection.sendREPLCommand('');
       await this.connection.sendREPLCommand('import os');
-      const result = await this.connection.sendREPLCommand(`os.listdir('${path}')`);
+      
+      // Use os.listdir() without arguments for current directory
+      const listCommand = path === '.' ? 'os.listdir()' : `os.listdir('${path}')`;
+      const result = await this.connection.sendREPLCommand(listCommand);
 
-      // Parse the list result
-      const match = result.match(/\[(.*)\]/);
-      if (!match) {
+      // More comprehensive error checking
+      if (result.includes('Traceback') || result.includes('Error:') || result.includes('OSError') || 
+          result.includes('Errno') || result.includes('NameError') || result.includes('AttributeError')) {
+        console.warn('Error listing directory:', result);
         return [];
       }
 
-      const items = match[1].split(',').map((item) => item.trim().replace(/'/g, ''));
+      // Parse the list result - be more careful with regex
+      const match = result.match(/\[([^\]]*)\]/);
+      if (!match) {
+        console.warn('No valid list found in result:', result);
+        return [];
+      }
+
+      // More robust parsing for different MicroPython implementations
+      const listContent = match[1].trim();
+      if (!listContent) {
+        return []; // Empty directory
+      }
+
+      // Split by comma but handle quoted strings properly
+      const items = [];
+      let current = '';
+      let inQuotes = false;
+      let quoteChar = '';
+      
+      for (let i = 0; i < listContent.length; i++) {
+        const char = listContent[i];
+        if ((char === '"' || char === "'") && !inQuotes) {
+          inQuotes = true;
+          quoteChar = char;
+        } else if (char === quoteChar && inQuotes) {
+          inQuotes = false;
+          quoteChar = '';
+        } else if (char === ',' && !inQuotes) {
+          const item = current.trim().replace(/^['"]|['"]$/g, '');
+          if (item && !item.includes('Errno') && !item.includes('Error') && 
+              !item.includes('Traceback') && item.length > 0) {
+            items.push(item);
+          }
+          current = '';
+          continue;
+        }
+        if (char !== '"' && char !== "'") {
+          current += char;
+        }
+      }
+      
+      // Don't forget the last item
+      if (current.trim()) {
+        const item = current.trim().replace(/^['"]|['"]$/g, '');
+        if (item && !item.includes('Errno') && !item.includes('Error') && 
+            !item.includes('Traceback') && item.length > 0) {
+          items.push(item);
+        }
+      }
+
       const entries: any[] = [];
 
       for (const item of items) {
-        if (!item) {
+        if (!item || item.includes('Errno') || item.includes('Error') || item.includes('Traceback')) {
           continue;
         }
 
         try {
           // Check if it's a file or directory and get size
-          const fullPath = path.endsWith('/') ? path + item : path + '/' + item;
+          // For current directory (.), just use the item name
+          const fullPath = path === '.' ? item : (path.endsWith('/') ? path + item : path + '/' + item);
+          
+          // Skip stat for obviously problematic paths
+          if (fullPath.includes('Errno') || fullPath.includes('Error')) {
+            continue;
+          }
+          
           const statResult = await this.connection.sendREPLCommand(`os.stat('${fullPath}')`);
+          
+          // Check if stat failed
+          if (statResult.includes('Traceback') || statResult.includes('OSError') || statResult.includes('Errno')) {
+            console.warn(`Failed to stat ${fullPath}:`, statResult);
+            // Add entry with minimal info
+            entries.push({
+              name: item,
+              size: 0,
+              isDirectory: !item.includes('.'), // Guess based on extension
+              path: fullPath,
+            });
+            continue;
+          }
           
           // Parse stat result tuple: (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime)
           const cleanStatResult = this.extractREPLValue(statResult);
