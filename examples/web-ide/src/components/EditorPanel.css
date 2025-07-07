@@ -122,3 +122,54 @@
   color: #868686;
   font-size: 14px;
 }
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  max-width: 500px;
+}
+
+.empty-state h2 {
+  color: #cccccc;
+  font-size: 24px;
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+
+.empty-state p {
+  margin-bottom: 24px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.connect-button {
+  background: #007acc;
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.connect-button:hover {
+  background: #005a9e;
+}
+
+.connected-message {
+  color: #4ec9b0;
+}
+
+.connected-message p {
+  margin-bottom: 12px;
+}
+
+.connected-message p:last-child {
+  margin-bottom: 0;
+  color: #868686;
+  font-size: 14px;
+}

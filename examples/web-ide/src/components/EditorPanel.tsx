@@ -17,7 +17,7 @@ interface EditorPanelProps {
 }
 
 const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
-  const { isConnected, executeCode, writeFile } = useM5Stack()
+  const { isConnected, executeCode, writeFile, connect } = useM5Stack()
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeTabId, setActiveTabId] = useState<string>('')
 
@@ -84,11 +84,7 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
     }
   }
 
-  useEffect(() => {
-    if (tabs.length === 0) {
-      createTab('/untitled.py', '# Welcome to M5Stack Web IDE\n\nprint("Hello, M5Stack!")\n')
-    }
-  }, [])
+  // Remove default untitled.py creation
 
   // Handle opening files from sidebar
   useEffect(() => {
@@ -158,7 +154,24 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
           />
         ) : (
           <div className="editor-empty">
-            <p>No file open</p>
+            <div className="empty-state">
+              <h2>Welcome to M5Stack Web IDE</h2>
+              <p>Connect your M5Stack device to get started</p>
+              {!isConnected ? (
+                <button 
+                  className="connect-button"
+                  onClick={connect}
+                  title="Connect to M5Stack device"
+                >
+                  🔌 Connect M5Stack
+                </button>
+              ) : (
+                <div className="connected-message">
+                  <p>✅ M5Stack connected!</p>
+                  <p>Select a file from the explorer to start coding</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
