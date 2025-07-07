@@ -20,6 +20,9 @@ interface M5StackContextType {
   executeCode: (code: string) => Promise<string>
   replCommand: (command: string) => Promise<string>
   resetREPL: () => Promise<void>
+  terminalOutput: string[]
+  addTerminalOutput: (text: string, type?: 'input' | 'output' | 'error') => void
+  clearTerminalOutput: () => void
 }
 
 const M5StackContext = createContext<M5StackContextType | null>(null)
@@ -30,6 +33,7 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
   const [activeConnection, setActiveConnection] = useState<Connection | null>(null)
   const [activePort, setActivePort] = useState<any>(null)
   const [reconnectAttempts, setReconnectAttempts] = useState(0)
+  const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to M5Stack Terminal'])
 
   const connect = useCallback(async () => {
     try {
@@ -249,6 +253,15 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [reconnectAttempts, activeConnection, resetREPL])
 
+  const addTerminalOutput = useCallback((text: string, type: 'input' | 'output' | 'error' = 'output') => {
+    const prefix = type === 'input' ? '>>> ' : ''
+    setTerminalOutput(prev => [...prev, `${prefix}${text}`])
+  }, [])
+
+  const clearTerminalOutput = useCallback(() => {
+    setTerminalOutput(['Welcome to M5Stack Terminal'])
+  }, [])
+
   const value: M5StackContextType = {
     client,
     isConnected,
@@ -261,6 +274,9 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
     executeCode,
     replCommand,
     resetREPL,
+    terminalOutput,
+    addTerminalOutput,
+    clearTerminalOutput,
   }
 
   return (

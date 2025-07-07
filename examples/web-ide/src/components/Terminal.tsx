@@ -4,8 +4,7 @@ import { useM5Stack } from '../hooks/useM5Stack'
 import './Terminal.css'
 
 const Terminal = () => {
-  const { isConnected, replCommand, writeFile, resetREPL } = useM5Stack()
-  const [output, setOutput] = useState<string[]>(['Welcome to M5Stack Terminal'])
+  const { isConnected, replCommand, writeFile, resetREPL, terminalOutput, addTerminalOutput, clearTerminalOutput } = useM5Stack()
   const [input, setInput] = useState('')
   const [history, setHistory] = useState<string[]>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
@@ -16,12 +15,10 @@ const Terminal = () => {
     if (terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight
     }
-  }, [output])
+  }, [terminalOutput])
 
-  const addOutput = (text: string, type: 'input' | 'output' | 'error' = 'output') => {
-    const prefix = type === 'input' ? '>>> ' : ''
-    setOutput(prev => [...prev, `${prefix}${text}`])
-  }
+  // Use shared terminal output from context
+  const addOutput = addTerminalOutput
 
   const handleCommand = async (command: string) => {
     if (!command.trim()) return
@@ -86,7 +83,7 @@ const Terminal = () => {
   }
 
   const clearTerminal = () => {
-    setOutput(['Terminal cleared'])
+    clearTerminalOutput()
   }
 
   const createTestFile = async () => {
@@ -149,7 +146,7 @@ const Terminal = () => {
       </div>
       
       <div className="terminal-content" ref={terminalRef} onClick={() => inputRef.current?.focus()}>
-        {output.map((line, index) => (
+        {terminalOutput.map((line, index) => (
           <div key={index} className={`terminal-line ${line.startsWith('Error:') ? 'error' : ''}`}>
             {line}
           </div>

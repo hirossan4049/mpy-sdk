@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
 import Editor from '@monaco-editor/react'
-import { VscClose, VscCircleFilled, VscRunAll } from 'react-icons/vsc'
+import { useEffect, useState } from 'react'
+import { VscCircleFilled, VscClose, VscRunAll } from 'react-icons/vsc'
 import { useM5Stack } from '../hooks/useM5Stack'
 import './EditorPanel.css'
 
@@ -17,7 +17,7 @@ interface EditorPanelProps {
 }
 
 const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
-  const { isConnected, executeCode, writeFile, connect } = useM5Stack()
+  const { isConnected, executeCode, writeFile, connect, addTerminalOutput, resetREPL } = useM5Stack()
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeTabId, setActiveTabId] = useState<string>('')
 
@@ -32,7 +32,7 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
       path,
       isDirty: false
     }
-    
+
     setTabs([...tabs, newTab])
     setActiveTabId(newTab.id)
     return newTab.id
@@ -41,15 +41,15 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
   const closeTab = (tabId: string) => {
     const newTabs = tabs.filter(tab => tab.id !== tabId)
     setTabs(newTabs)
-    
+
     if (activeTabId === tabId && newTabs.length > 0) {
       setActiveTabId(newTabs[newTabs.length - 1].id)
     }
   }
 
   const updateTabContent = (tabId: string, content: string) => {
-    setTabs(tabs.map(tab => 
-      tab.id === tabId 
+    setTabs(tabs.map(tab =>
+      tab.id === tabId
         ? { ...tab, content, isDirty: true }
         : tab
     ))
@@ -63,24 +63,51 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
 
   const runCurrentFile = async () => {
     if (!activeTab || !isConnected) return
-    
+
     try {
+      // Reset REPL first to ensure clean state
+      addTerminalOutput('Resetting REPL...', 'input')
+      await resetREPL()
+
       // Save file first if it's dirty
       if (activeTab.isDirty) {
         await writeFile(activeTab.path, activeTab.content)
         // Mark as clean
-        setTabs(tabs.map(tab => 
-          tab.id === activeTab.id 
+        setTabs(tabs.map(tab =>
+          tab.id === activeTab.id
             ? { ...tab, isDirty: false }
             : tab
         ))
       }
-      
-      // Execute the file
-      const result = await executeCode(`exec(open('${activeTab.path}').read())`)
-      console.log('Execution result:', result)
+
+      // Execute the file - use soft reboot for main.py or exec for others
+      let result
+
+      addTerminalOutput(`Running ${activeTab.path}...`, 'input')
+
+      if (activeTab.path === '/flash/main.py') {
+        // For main.py, trigger soft reboot to run it properly
+        result = await executeCode('\x04')  // Ctrl+D for soft reboot
+        addTerminalOutput('Soft reboot triggered for main.py')
+
+        // Display the raw execution output (convert only \r\n to \n)
+        if (result) {
+          const rawOutput = result.replace(/\r\n/g, '\n')
+
+          if (rawOutput.trim()) {
+            addTerminalOutput('--- Raw Output ---')
+            addTerminalOutput(rawOutput)
+            addTerminalOutput('--- End ---')
+          }
+        }
+      } else {
+        // For other files, use exec
+        result = await executeCode(`exec(open('${activeTab.path}').read())`)
+        addTerminalOutput(result || 'Script executed successfully')
+      }
     } catch (error) {
       console.error('Failed to run file:', error)
+      addTerminalOutput(`Error: ${error instanceof Error ? error.message : String(error)}`, 'error')
     }
   }
 
@@ -123,8 +150,8 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
           ))}
         </div>
         <div className="editor-actions">
-          <button 
-            className="editor-action-button" 
+          <button
+            className="editor-action-button"
             onClick={runCurrentFile}
             disabled={!isConnected || !activeTab}
             title="Run current file"
@@ -133,7 +160,7 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
           </button>
         </div>
       </div>
-      
+
       <div className="editor-content">
         {activeTab ? (
           <Editor
@@ -158,7 +185,7 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
               <h2>Welcome to M5Stack Web IDE</h2>
               <p>Connect your M5Stack device to get started</p>
               {!isConnected ? (
-                <button 
+                <button
                   className="connect-button"
                   onClick={connect}
                   title="Connect to M5Stack device"
