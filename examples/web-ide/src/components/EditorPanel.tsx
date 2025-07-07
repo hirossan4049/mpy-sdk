@@ -17,7 +17,7 @@ interface EditorPanelProps {
 }
 
 const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
-  const { isConnected, executeCode, writeFile, connect, addTerminalOutput, resetREPL } = useM5Stack()
+  const { isConnected, executeCode, writeFile, connect, addTerminalOutput, resetREPL, addOutputLog } = useM5Stack()
   const [tabs, setTabs] = useState<Tab[]>([])
   const [activeTabId, setActiveTabId] = useState<string>('')
 
@@ -67,6 +67,7 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
     try {
       // Reset REPL first to ensure clean state
       addTerminalOutput('Resetting REPL...', 'input')
+      addOutputLog('File execution started')
       await resetREPL()
 
       // Save file first if it's dirty
@@ -87,26 +88,42 @@ const EditorPanel = ({ openFiles = [] }: EditorPanelProps) => {
 
       if (activeTab.path === '/flash/main.py') {
         // For main.py, trigger soft reboot to run it properly
+        addOutputLog('Executing main.py via soft reboot')
         result = await executeCode('\x04')  // Ctrl+D for soft reboot
         addTerminalOutput('Soft reboot triggered for main.py')
 
         // Display the raw execution output (convert only \r\n to \n)
         if (result) {
           const rawOutput = result.replace(/\r\n/g, '\n')
+          addOutputLog(`Raw output received: ${rawOutput.length} characters`)
 
           if (rawOutput.trim()) {
             addTerminalOutput('--- Raw Output ---')
             addTerminalOutput(rawOutput)
             addTerminalOutput('--- End ---')
+            addOutputLog('Output displayed in terminal')
+            
+            // Also add the raw output to the Output tab with proper line breaks
+            addOutputLog('--- M5Stack Raw Output ---')
+            const outputLines = rawOutput.split('\n')
+            outputLines.forEach(line => {
+              if (line.trim()) {
+                addOutputLog(line.trim())
+              }
+            })
+            addOutputLog('--- End M5Stack Output ---')
           }
         }
       } else {
         // For other files, use exec
+        addOutputLog(`Executing ${activeTab.path} via exec()`)
         result = await executeCode(`exec(open('${activeTab.path}').read())`)
         addTerminalOutput(result || 'Script executed successfully')
+        addOutputLog('Exec execution completed')
       }
     } catch (error) {
       console.error('Failed to run file:', error)
+      addOutputLog(`Execution error: ${error instanceof Error ? error.message : String(error)}`)
       addTerminalOutput(`Error: ${error instanceof Error ? error.message : String(error)}`, 'error')
     }
   }

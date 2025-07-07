@@ -23,6 +23,9 @@ interface M5StackContextType {
   terminalOutput: string[]
   addTerminalOutput: (text: string, type?: 'input' | 'output' | 'error') => void
   clearTerminalOutput: () => void
+  outputLogs: string[]
+  addOutputLog: (text: string) => void
+  clearOutputLogs: () => void
 }
 
 const M5StackContext = createContext<M5StackContextType | null>(null)
@@ -34,6 +37,78 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
   const [activePort, setActivePort] = useState<any>(null)
   const [reconnectAttempts, setReconnectAttempts] = useState(0)
   const [terminalOutput, setTerminalOutput] = useState<string[]>(['Welcome to M5Stack Terminal'])
+  const [outputLogs, setOutputLogs] = useState<string[]>(['Output log started...'])
+  const MAX_OUTPUT_LOGS = 100 // Limit output logs to prevent performance issues
+
+  // Track previous REPL buffer content to show only new additions
+  const [previousREPLBuffer, setPreviousREPLBuffer] = useState<string>('')
+
+  // Intercept console.log to capture M5Stack SDK output
+  const originalConsoleLog = console.log
+  console.log = (...args) => {
+    // Call original console.log
+    originalConsoleLog(...args)
+    
+    // Capture output for the Output tab
+    const message = args.map(arg => typeof arg === 'string' ? arg : JSON.stringify(arg)).join(' ')
+    
+    if (message.includes('REPL buffer:')) {
+      // Extract the REPL buffer content
+      const bufferMatch = message.match(/REPL buffer: (.+)$/)
+      if (bufferMatch) {
+        const currentBuffer = bufferMatch[1]
+        
+        // Get only the new part by removing the previous buffer content
+        let newContent = currentBuffer
+        if (previousREPLBuffer && currentBuffer.startsWith(previousREPLBuffer)) {
+          newContent = currentBuffer.substring(previousREPLBuffer.length)
+        } else if (previousREPLBuffer && currentBuffer.length > previousREPLBuffer.length) {
+          // If current buffer doesn't start with previous, try to find the common part
+          let commonLength = 0
+          const minLength = Math.min(previousREPLBuffer.length, currentBuffer.length)
+          for (let i = 0; i < minLength; i++) {
+            if (previousREPLBuffer[i] === currentBuffer[i]) {
+              commonLength = i + 1
+            } else {
+              break
+            }
+          }
+          newContent = currentBuffer.substring(commonLength)
+        }
+        
+        // Update previous buffer state
+        setPreviousREPLBuffer(currentBuffer)
+        
+        // Add only the new content to output logs
+        if (newContent.trim()) {
+          const timestamp = new Date().toLocaleTimeString()
+          
+          // Convert \r\n and \n to actual line breaks and split into separate log entries
+          const lines = newContent.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').split('\n')
+          const newEntries: string[] = []
+          lines.forEach(line => {
+            if (line.trim()) {
+              newEntries.push(`[${timestamp}] ${line.trim()}`)
+            }
+          })
+          
+          // Batch update to reduce re-renders and limit total logs
+          if (newEntries.length > 0) {
+            setOutputLogs(prev => {
+              const updated = [...prev, ...newEntries]
+              return updated.length > MAX_OUTPUT_LOGS ? updated.slice(-MAX_OUTPUT_LOGS) : updated
+            })
+          }
+        }
+      }
+    } else if (message.includes('send:') || message.includes('M5Stack')) {
+      const timestamp = new Date().toLocaleTimeString()
+      setOutputLogs(prev => {
+        const updated = [...prev, `[${timestamp}] ${message}`]
+        return updated.length > MAX_OUTPUT_LOGS ? updated.slice(-MAX_OUTPUT_LOGS) : updated
+      })
+    }
+  }
 
   const connect = useCallback(async () => {
     try {
@@ -217,6 +292,9 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
       await activeConnection.executeCode(ctrlC)
       await new Promise(resolve => setTimeout(resolve, 100))
 
+      // Reset REPL buffer tracking when REPL is reset
+      setPreviousREPLBuffer('')
+      
       console.log('REPL reset')
     } catch (error) {
       console.error('Failed to reset REPL:', error)
@@ -262,6 +340,19 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
     setTerminalOutput(['Welcome to M5Stack Terminal'])
   }, [])
 
+  const addOutputLog = useCallback((text: string) => {
+    const timestamp = new Date().toLocaleTimeString()
+    setOutputLogs(prev => {
+      const updated = [...prev, `[${timestamp}] ${text}`]
+      return updated.length > MAX_OUTPUT_LOGS ? updated.slice(-MAX_OUTPUT_LOGS) : updated
+    })
+  }, [])
+
+  const clearOutputLogs = useCallback(() => {
+    setOutputLogs(['Output log started...'])
+    setPreviousREPLBuffer('') // Reset REPL buffer tracking
+  }, [])
+
   const value: M5StackContextType = {
     client,
     isConnected,
@@ -277,6 +368,9 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
     terminalOutput,
     addTerminalOutput,
     clearTerminalOutput,
+    outputLogs,
+    addOutputLog,
+    clearOutputLogs,
   }
 
   return (
