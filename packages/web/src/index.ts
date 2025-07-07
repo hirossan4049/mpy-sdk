@@ -122,9 +122,9 @@ class WebDeviceManager extends BrowserEventEmitter {
     this.connection = connection;
     
     // Forward events
-    this.connection.on('connect', () => {
+    this.connection.on('connect', async () => {
       console.log('Web Serial connection established');
-      void this.initializeREPL();
+      await this.initializeREPL();
       this.emit('connect');
     });
     this.connection.on('disconnect', () => this.emit('disconnect'));

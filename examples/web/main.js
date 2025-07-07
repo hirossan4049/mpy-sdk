@@ -66,6 +66,7 @@ class M5StackWebExample {
       
       this.connection = await this.client.connect(port);
       this.isConnected = true;
+      this.lastPort = port; // Store port for reconnection
       
       this.setupConnectionEvents();
       this.updateStatus('Connected', 'connected');
@@ -80,6 +81,12 @@ class M5StackWebExample {
       this.log(`❌ Connection failed: ${error.message}`, 'error');
       this.updateStatus('Connection failed', 'disconnected');
       this.updateButtonStates();
+      
+      // Auto-reconnect on timeout errors during initial connection
+      if (error.message.includes('timeout') || error.message.includes('Command timeout')) {
+        this.log('🔄 Initial connection timeout, attempting to reconnect...', 'info');
+        this.handleTimeoutReconnect();
+      }
     }
   }
 
@@ -111,6 +118,12 @@ class M5StackWebExample {
     
     this.connection.on('error', (error) => {
       this.log(`❌ Connection error: ${error.message}`, 'error');
+      
+      // Auto-reconnect on timeout errors
+      if (error.message.includes('timeout') || error.message.includes('Command timeout')) {
+        this.log('🔄 Timeout detected, attempting to reconnect...', 'info');
+        this.handleTimeoutReconnect();
+      }
     });
     
     this.connection.on('busy', (busy) => {
@@ -432,6 +445,68 @@ except Exception as e:
 
   clearLog() {
     document.getElementById('log').innerHTML = '';
+  }
+
+  async handleTimeoutReconnect() {
+    if (this.reconnectAttempts > 2) {
+      this.log('❌ Maximum reconnection attempts reached, please reload the page', 'error');
+      this.updateStatus('Reconnection failed - reload page', 'disconnected');
+      
+      // Show reload button
+      const reloadBtn = document.createElement('button');
+      reloadBtn.textContent = '🔄 Reload Page';
+      reloadBtn.onclick = () => window.location.reload();
+      reloadBtn.style.marginTop = '10px';
+      reloadBtn.style.padding = '10px 20px';
+      reloadBtn.style.backgroundColor = '#007bff';
+      reloadBtn.style.color = 'white';
+      reloadBtn.style.border = 'none';
+      reloadBtn.style.borderRadius = '4px';
+      reloadBtn.style.cursor = 'pointer';
+      
+      document.getElementById('log').appendChild(reloadBtn);
+      return;
+    }
+
+    this.reconnectAttempts = (this.reconnectAttempts || 0) + 1;
+    this.log(`🔄 Reconnection attempt ${this.reconnectAttempts}/3...`, 'info');
+    
+    try {
+      // Clear connection state
+      this.isConnected = false;
+      this.connection = null;
+      this.updateStatus('Reconnecting...', 'busy');
+      
+      // Wait a bit before reconnecting
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Try to reconnect using the same port
+      if (this.lastPort) {
+        this.log('🔌 Attempting to reconnect to last port...', 'info');
+        this.connection = await this.client.connect(this.lastPort);
+        this.isConnected = true;
+        
+        this.setupConnectionEvents();
+        this.updateStatus('Reconnected', 'connected');
+        this.updateButtonStates();
+        
+        this.log('✅ Reconnected successfully!', 'info');
+        this.reconnectAttempts = 0; // Reset counter on success
+        
+        // Auto-get device info
+        setTimeout(() => this.getDeviceInfo(), 1000);
+      } else {
+        throw new Error('No previous port available');
+      }
+      
+    } catch (error) {
+      this.log(`❌ Reconnection failed: ${error.message}`, 'error');
+      this.updateStatus('Reconnection failed', 'disconnected');
+      this.updateButtonStates();
+      
+      // Try again after a longer delay
+      setTimeout(() => this.handleTimeoutReconnect(), 5000);
+    }
   }
 }
 

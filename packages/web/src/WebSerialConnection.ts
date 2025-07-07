@@ -293,7 +293,7 @@ export class WebSerialConnection extends BaseWebSerialConnection {
 
   private processREPLResponse(data: string): void {
     this.responseBuffer += data;
-    
+
     if (this.currentCommand && this.responseBuffer.includes('>>> ')) {
       // Extract response before the prompt
       const lines = this.responseBuffer.split('\n');
