@@ -247,8 +247,22 @@ export class WebSerialConnection extends BaseWebSerialConnection {
     if (!this.writer) {
       throw new CommunicationError('Not connected');
     }
-    // Convert BrowserBuffer to Uint8Array for Web Serial API
-    await this.writer.write(data.subarray());
+    // Convert to Uint8Array and write in 64KiB chunks to mimic Node highWaterMark
+    const buffer = data.subarray();
+    const CHUNK_SIZE = 64 * 1024;
+    try {
+      for (let offset = 0; offset < buffer.length; offset += CHUNK_SIZE) {
+        const chunk = buffer.subarray(offset, offset + CHUNK_SIZE);
+        await this.writer.write(chunk);
+        // wait for backpressure to clear (drain-like)
+        if (this.writer.ready) {
+          await this.writer.ready;
+        }
+      }
+    } catch (error) {
+      this.onError(error as Error);
+      throw new CommunicationError(`Write failed: ${error}`);
+    }
   }
 
   isOpen(): boolean {
@@ -265,13 +279,11 @@ export class WebSerialConnection extends BaseWebSerialConnection {
         const { value, done } = await this.reader.read();
         if (done) break;
         if (value) {
-          // Convert to text for REPL processing
-          const decoder = new TextDecoder();
-          const text = decoder.decode(value);
-          this.processREPLResponse(text);
-          
-          // Also emit as buffer for protocol use
+          // Emit binary data first for protocol handling
           this.onDataReceived(new BrowserBuffer(value));
+          // Then process text for REPL
+          const text = new TextDecoder().decode(value);
+          this.processREPLResponse(text);
         }
       }
     } catch (error) {
@@ -326,7 +338,12 @@ export class WebSerialConnection extends BaseWebSerialConnection {
       };
 
       const encoder = new TextEncoder();
-      this.writer!.write(encoder.encode(command + '\r\n'));
+      // Write command + CRLF as raw bytes for reliable encoding and flushing
+      const cmdBytes = encoder.encode(command);
+      const payload = new Uint8Array(cmdBytes.length + 2);
+      payload.set(cmdBytes, 0);
+      payload.set([0x0d, 0x0a], cmdBytes.length);
+      void this.writeRaw(Buffer.from(payload));
     });
   }
 
@@ -334,12 +351,14 @@ export class WebSerialConnection extends BaseWebSerialConnection {
     if (!this.writer) return;
 
     // Send Ctrl+C to interrupt any running program
-    await this.writer.write(new Uint8Array([0x03]));
+    // Send Ctrl+C as raw byte via writeRaw
+    await this.writeRaw(Buffer.from([0x03]));
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Clear any pending input
     const encoder = new TextEncoder();
-    await this.writer.write(encoder.encode('\r\n'));
+    // Send CRLF as raw bytes
+    await this.writeRaw(Buffer.from([0x0d, 0x0a]));
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     this.responseBuffer = '';
