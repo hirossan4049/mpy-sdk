@@ -160,9 +160,9 @@ export const M5StackProvider = ({ children }: { children: ReactNode }) => {
       const data = await activeConnection.readFile(path)
 
       // If it's Uint8Array or ArrayBuffer, decode it
-      if (data instanceof Uint8Array || data instanceof ArrayBuffer) {
+      if ((data as any) instanceof Uint8Array || (data as any) instanceof ArrayBuffer) {
         const decoder = new TextDecoder()
-        return decoder.decode(data)
+        return decoder.decode(data as any)
       }
 
       // Check if data is already a string

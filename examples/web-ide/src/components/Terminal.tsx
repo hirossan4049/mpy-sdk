@@ -20,7 +20,6 @@ const Terminal = () => {
 
   const addOutput = (text: string, type: 'input' | 'output' | 'error' = 'output') => {
     const prefix = type === 'input' ? '>>> ' : ''
-    const className = type === 'error' ? 'error' : ''
     setOutput(prev => [...prev, `${prefix}${text}`])
   }
 

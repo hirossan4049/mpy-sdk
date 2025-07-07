@@ -12,8 +12,8 @@ export type ViewType = 'explorer' | 'search' | 'git' | 'extensions'
 
 function App() {
   const [activeView, setActiveView] = useState<ViewType>('explorer')
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [terminalCollapsed, setTerminalCollapsed] = useState(false)
+  const [sidebarCollapsed] = useState(false)
+  const [terminalCollapsed] = useState(false)
   const [openFiles, setOpenFiles] = useState<Array<{ path: string; content: string }>>([])
 
   const handleFileSelect = (path: string, content: string) => {

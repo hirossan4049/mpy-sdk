@@ -1,4 +1,4 @@
-import { VscRemote, VscSync, VscError, VscCheck } from 'react-icons/vsc'
+import { VscRemote } from 'react-icons/vsc'
 import { useM5Stack } from '../hooks/useM5Stack'
 import './StatusBar.css'
 
